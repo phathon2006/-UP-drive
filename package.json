@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node src/server.js"
+    "dev": "node src/server.js",
+    "test:e2e": "python tests/e2e_ride_requests.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.0",
