@@ -96,20 +96,22 @@ if (
   location.href =
     "/";
 
+} else {
+
+  document.getElementById(
+    "userName"
+  ).textContent =
+    profile.name;
+
+  document.getElementById(
+    "backLink"
+  ).href =
+    profile.role ===
+    "driver"
+      ? "/driver.html"
+      : "/passenger.html";
+
 }
-
-document.getElementById(
-  "userName"
-).textContent =
-  profile.name;
-
-document.getElementById(
-  "backLink"
-).href =
-  profile.role ===
-  "driver"
-    ? "/driver.html"
-    : "/passenger.html";
 
 function escapeHtml(value) {
 
@@ -391,7 +393,11 @@ function logout() {
 
 }
 
-loadHistory();
+if (session && profile) {
+
+  loadHistory();
+
+}
 
 </script>
 

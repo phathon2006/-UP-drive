@@ -336,6 +336,12 @@ $("loginForm").addEventListener(
         );
       }
 
+      if (!data.profile) {
+        throw new Error(
+          "ไม่พบข้อมูลโปรไฟล์ กรุณาสมัครใหม่อีกครั้ง"
+        );
+      }
+
       saveSession(data);
 
       redirectByRole(
