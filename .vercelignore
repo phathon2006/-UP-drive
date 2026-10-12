@@ -1,0 +1,7 @@
+# ไฟล์/โฟลเดอร์ที่ไม่ต้องอัปโหลดขึ้น Vercel
+node_modules
+.git
+.env
+.env.*
+docs
+tests
