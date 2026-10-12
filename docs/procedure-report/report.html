@@ -1,0 +1,311 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><title>รายงาน Stored Procedure — UP Drive</title><style>
+:root{--ink:#1b2434;--muted:#6b7688;--line:#e2e8f0;--accent:#7c3aed;--bg:#eef2f8;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Leelawadee UI","Noto Sans Thai",Tahoma,system-ui,sans-serif;line-height:1.6;}
+.page{width:960px;margin:0 auto;background:#fff;padding:44px 52px;box-shadow:0 10px 40px rgba(15,23,42,.08);}
+h1{font-size:30px;margin:0 0 6px;letter-spacing:-.3px;}
+h2{font-size:21px;margin:38px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line);}
+.sub{color:var(--muted);font-size:14px;margin:0;}
+.kicker{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);background:#ede9fe;padding:4px 10px;border-radius:999px;}
+hr{border:0;border-top:1px solid var(--line);margin:30px 0;}
+p{margin:10px 0;} code{font-family:"Cascadia Code",Consolas,monospace;}
+pre.sql{background:#231e30;color:#e6edf3;border-radius:10px;padding:16px 18px;overflow:auto;font-size:12.5px;line-height:1.55;margin:10px 0;border:1px solid #1b1526;}
+table.res{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;table-layout:fixed;}
+table.res th{background:#eef2f7;text-align:left;padding:8px 10px;border:1px solid var(--line);font-weight:600;font-size:12px;color:#334155;word-break:break-word;}
+table.res td{padding:7px 10px;border:1px solid var(--line);word-break:break-word;}
+td.mono,.mono{font-family:"Cascadia Code",Consolas,monospace;font-size:12px;}
+td.small{font-size:11px;color:#475569;font-family:"Cascadia Code",Consolas,monospace;}
+td.num{font-family:"Cascadia Code",Consolas,monospace;font-weight:700;color:#166534;}
+td.bool{font-family:"Cascadia Code",Consolas,monospace;font-weight:700;color:#b45309;}
+td.null,.muted{color:var(--muted);}
+.caption{font-size:12.5px;color:var(--muted);margin:6px 0 0;}
+.step{margin:18px 0 26px;}
+.step .hd{display:flex;gap:10px;align-items:baseline;margin-bottom:4px;}
+.step .no{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.step .ttl{font-weight:700;font-size:15px;}
+.note{background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:10px 14px;font-size:13.5px;color:#5b21b6;}
+.err{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:13px;color:#991b1b;font-family:"Cascadia Code",Consolas,monospace;}
+.lead{font-size:15px;color:#334155;}
+ul{margin:8px 0 8px 4px;padding-left:20px;} li{margin:4px 0;}
+.footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+.page{width:960px;}</style></head><body><div class="page">
+<span class="kicker">รายงาน Stored Procedure</span>
+<h1>ระบบแชร์รถมหาวิทยาลัยพะเยา — UP Drive</h1>
+<p class="sub">รายงานแสดง Stored Procedure ของกลุ่ม พร้อมผลการเรียกใช้งานจริง</p>
+<hr>
+<h2>1. Stored Procedure คืออะไร</h2>
+<p class="lead"><b>Stored Procedure (โปรแกรมเก็บไว้ในฐานข้อมูล)</b> คือชุดคําสั่งที่เก็บไว้ในฐานข้อมูล
+ตั้งชื่อไว้ แล้วเรียกใช้ด้วยคําสั่ง <code>CALL</code> ต่างจาก SQL Function ตรงที่ procedure
+<b>ไม่คืนค่าเป็นผลลัพธ์ของคําสั่ง</b> แต่ทํางานเป็นชุด (หลายคําสั่ง) และส่งค่ากลับทาง parameter ได้</p>
+<h2>2. ข้อแตกต่างจาก SQL Function</h2>
+<table class="res">
+  <thead><tr><th>หัวข้อ</th><th>Stored Procedure</th><th>Function</th></tr></thead>
+  <tbody>
+    <tr><td>การเรียกใช้</td><td>CALL proc(...)</td><td>อยู่ใน select / นิพจน์</td></tr>
+    <tr><td>ค่าที่คืน</td><td>ไม่คืนผ่าน select — คืนทาง INOUT/OUT</td><td>คืนค่าเดี่ยวหรือตาราง</td></tr>
+    <tr><td>การทํางาน</td><td>หลายคําสั่ง + จัดการ transaction ได้</td><td>มักเป็นคําสั่งเดียว/อ่านค่า</td></tr>
+    <tr><td>เหมาะกับ</td><td>งานที่เปลี่ยนข้อมูลหลายขั้นตอน (business action)</td><td>การคํานวณ/คิวรีที่เรียกซ้ํา</td></tr>
+  </tbody>
+</table>
+<h2>3. ทําไมกลุ่มเราจึงเลือกเขียน Procedure</h2>
+<p>งานอย่าง "คนขับรับงาน" หรือ "ยกเลิกกลุ่ม" ต้องทําหลายขั้นตอนติดกัน (ตรวจเงื่อนไข + อัปเดตสถานะ +
+บันทึก log) เดิมโค้ดฝั่งเซิร์ฟเวอร์ต้องยิงหลายคิวรีและเสี่ยงที่ข้อมูลจะไม่ตรงกัน กลุ่มเราจึงย้ายมาเป็น
+Stored Procedure ให้ทําทั้งชุดในคําสั่งเดียวที่ฐานข้อมูล รับประกันความถูกต้องของข้อมูล</p>
+
+<h2>4. Stored Procedure ทั้ง 3 ตัวของกลุ่ม</h2>
+<table class="res">
+  <thead><tr><th>#</th><th>ชื่อ Procedure</th><th>หน้าที่</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="mono">sp_accept_ride_group(group_id, driver_id)</td><td>คนขับรับงาน: ตรวจเงื่อนไข -> มอบหมายคนขับ -> ตั้งสถานะ accepted -> บันทึก event</td></tr>
+    <tr><td>2</td><td class="mono">sp_cancel_ride_group(group_id, actor_id, reason)</td><td>ยกเลิกกลุ่ม: ตั้งสถานะ cancelled -> คืนคนขับ -> บันทึก event</td></tr>
+    <tr><td>3</td><td class="mono">sp_expire_stale_groups(older_than)</td><td>งานประจํา: ปิดกลุ่มที่รวมคนเกินเวลาที่กําหนด แล้วบันทึก event</td></tr>
+  </tbody>
+</table>
+
+<h2>4. โค้ด Stored Procedure ของกลุ่ม</h2>
+<p>สคริปต์ทั้งหมดอยู่ในไฟล์ <code>procedures.sql</code> — ประกอบด้วย 3 procedure</p>
+<pre class="sql"><code>-- =========================================================
+-- UP DRIVE V2 - STORED PROCEDURES
+-- ระบบแชร์รถ มหาวิทยาลัยพะเยา (กลุ่ม UP Drive)
+-- PostgreSQL (Supabase รองรับ CREATE PROCEDURE ตั้งแต่ PG11)
+-- เรียกใช้ด้วยคําสั่ง CALL
+-- =========================================================
+
+-- ตารางบันทึกเหตุการณ์ของกลุ่ม ใช้เป็น audit log ของ procedure
+create table if not exists public.ride_group_events (
+  id bigserial primary key,
+  group_id uuid not null references public.ride_groups(id) on delete cascade,
+  actor_id uuid references public.profiles(id),
+  event text not null,
+  detail text,
+  created_at timestamptz not null default now()
+);
+
+
+-- ---------------------------------------------------------
+-- PROCEDURE 1: sp_accept_ride_group
+--   คนขับรับงาน : ตรวจเงื่อนไข -&gt; มอบหมายคนขับ -&gt; ตั้งสถานะ accepted
+--   -&gt; บันทึก event ทั้งหมดในคําสั่งเดียว
+-- ---------------------------------------------------------
+create or replace procedure public.sp_accept_ride_group(
+  p_group_id uuid,
+  p_driver_id uuid,
+  inout p_message text default ''
+)
+language plpgsql
+as $$
+declare
+  v_status  text;
+  v_target  integer;
+  v_current integer;
+begin
+  -- ล็อกแถวไว้กันการรับงานซ้อน
+  select status, target_passengers
+    into v_status, v_target
+  from public.ride_groups
+  where id = p_group_id
+  for update;
+
+  if not found then
+    raise exception 'ไม่พบกลุ่ม %', p_group_id;
+  end if;
+
+  if v_status not in ('forming', 'sent_to_driver') then
+    raise exception 'กลุ่มสถานะ % รับงานไม่ได้', v_status;
+  end if;
+
+  if not exists (
+    select 1 from public.profiles
+    where id = p_driver_id and role = 'driver'
+  ) then
+    raise exception 'ผู้ใช้ % ไม่ใช่คนขับ', p_driver_id;
+  end if;
+
+  v_current := public.group_passenger_total(p_group_id);
+
+  update public.ride_groups
+     set driver_id = p_driver_id,
+         status    = 'accepted'
+   where id = p_group_id;
+
+  insert into public.ride_group_events (group_id, actor_id, event, detail)
+  values (p_group_id, p_driver_id, 'accepted',
+          format('คนขับรับงาน: ผู้โดยสาร %s/%s คน', v_current, v_target));
+
+  p_message := format('รับงานสำเร็จ: ผู้โดยสาร %s/%s คน', v_current, v_target);
+end;
+$$;
+
+
+-- ---------------------------------------------------------
+-- PROCEDURE 2: sp_cancel_ride_group
+--   ยกเลิกกลุ่ม : ตั้งสถานะ cancelled -&gt; คืนคนขับ -&gt; บันทึก event
+-- ---------------------------------------------------------
+create or replace procedure public.sp_cancel_ride_group(
+  p_group_id uuid,
+  p_actor_id uuid,
+  p_reason   text,
+  inout p_message text default ''
+)
+language plpgsql
+as $$
+declare
+  v_status text;
+begin
+  select status
+    into v_status
+  from public.ride_groups
+  where id = p_group_id
+  for update;
+
+  if not found then
+    raise exception 'ไม่พบกลุ่ม %', p_group_id;
+  end if;
+
+  if v_status in ('completed', 'cancelled') then
+    raise exception 'กลุ่มสถานะ % ยกเลิกไม่ได้', v_status;
+  end if;
+
+  update public.ride_groups
+     set status    = 'cancelled',
+         driver_id = null
+   where id = p_group_id;
+
+  insert into public.ride_group_events (group_id, actor_id, event, detail)
+  values (p_group_id, p_actor_id, 'cancelled', p_reason);
+
+  p_message := format('ยกเลิกกลุ่มสำเร็จ (%s)', p_reason);
+end;
+$$;
+
+
+-- ---------------------------------------------------------
+-- PROCEDURE 3: sp_expire_stale_groups
+--   งานประจํา (maintenance) : ปิดกลุ่มที่รวมคนเกินเวลาที่กําหนด
+--   แล้วบันทึก event ให้ทุกกลุ่มที่ถูกปิด
+-- ---------------------------------------------------------
+create or replace procedure public.sp_expire_stale_groups(
+  p_older_than interval,
+  inout p_expired integer default 0
+)
+language plpgsql
+as $$
+declare
+  v_ids uuid[];
+begin
+  with stale as (
+    update public.ride_groups
+       set status = 'cancelled'
+     where status = 'forming'
+       and created_at &lt; now() - p_older_than
+    returning id
+  )
+  select array_agg(id) into v_ids from stale;
+
+  if v_ids is null then
+    p_expired := 0;
+    return;
+  end if;
+
+  insert into public.ride_group_events (group_id, event, detail)
+  select unnest(v_ids), 'expired', 'หมดเวลารวมคนอัตโนมัติ';
+
+  p_expired := array_length(v_ids, 1);
+end;
+$$;</code></pre>
+
+<h2>6. ผลการทดสอบ — คนขับรับงาน (Procedure 1)</h2>
+<div class="step">
+    <div class="hd"><span class="no">2</span><span class="ttl">CALL sp_accept_ride_group(กลุ่ม A, คนขับ) — สำเร็จ</span></div>
+    <pre class="sql"><code>call public.sp_accept_ride_group(
+  'aaaaaaaa-0000-0000-0000-000000000001'::uuid,   -- กลุ่ม A
+  '11111111-1111-1111-1111-0000000000d1'::uuid     -- คนขับ
+);</code></pre>
+    <table class="res"><thead><tr><th>p_message</th></tr></thead><tbody><tr><td>รับงานสำเร็จ: ผู้โดยสาร 3/4 คน</td></tr></tbody></table>
+    
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">3</span><span class="ttl">ตรวจผลหลัง CALL — กลุ่ม A ถูกมอบหมายคนขับ + บันทึก event แล้ว</span></div>
+    <pre class="sql"><code>select left(id::text,8) as group_id, status, driver_id is not null as has_driver
+from public.ride_groups where id = 'aaaaaaaa-0000-0000-0000-000000000001';
+
+select event, detail from public.ride_group_events where group_id = 'aaaaaaaa-0000-0000-0000-000000000001';</code></pre>
+    <table class="res"><thead><tr><th>group_id</th><th>status</th><th>has_driver</th></tr></thead><tbody><tr><td class="mono">aaaaaaaa…</td><td>accepted</td><td class="bool">true</td></tr></tbody></table><p class="sub-note" style="font-size:12.5px;color:#6b7688;margin:6px 0 2px;">และตาราง event log:</p><table class="res"><thead><tr><th>event</th><th>detail</th></tr></thead><tbody><tr><td>accepted</td><td>คนขับรับงาน: ผู้โดยสาร 3/4 คน</td></tr></tbody></table>
+    <p class="note">procedure ทำงานหลายคำสั่ง (ตรวจ + update + insert log) ในคําสั่งเดียว</p>
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">4</span><span class="ttl">CALL sp_accept_ride_group(กลุ่ม A ซ้ำ) — ถูกปฏิเสธ</span></div>
+    <pre class="sql"><code>call public.sp_accept_ride_group('aaaaaaaa-0000-0000-0000-000000000001'::uuid, '11111111-1111-1111-1111-0000000000d1'::uuid);</code></pre>
+    <p class="err">ERROR: กลุ่มสถานะ accepted รับงานไม่ได้</p>
+    <p class="note">กลุ่มสถานะ accepted แล้ว จึงรับงานซ้ำไม่ได้</p>
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">5</span><span class="ttl">CALL sp_accept_ride_group(กลุ่ม C, ผู้โดยสาร) — ถูกปฏิเสธ</span></div>
+    <pre class="sql"><code>call public.sp_accept_ride_group(
+  'cccccccc-0000-0000-0000-000000000001'::uuid,   -- กลุ่ม C
+  '11111111-1111-1111-1111-000000000003'::uuid     -- เป็นผู้โดยสาร ไม่ใช่คนขับ
+);</code></pre>
+    <p class="err">ERROR: ผู้ใช้ 11111111-1111-1111-1111-000000000003 ไม่ใช่คนขับ</p>
+    <p class="note">procedure ตรวจ role ของผู้ใช้ก่อนมอบหมายงาน</p>
+  </div>
+<p class="caption">ภาพที่ 4 — ผลเรียก sp_accept_ride_group() และการตรวจเงื่อนไข</p>
+
+<h2>7. ผลการทดสอบ — ยกเลิกกลุ่มและงานประจํา (Procedure 2-3)</h2>
+<div class="step">
+    <div class="hd"><span class="no">6</span><span class="ttl">CALL sp_cancel_ride_group(กลุ่ม C) — ยกเลิกพร้อมระบุเหตุผล</span></div>
+    <pre class="sql"><code>call public.sp_cancel_ride_group(
+  'cccccccc-0000-0000-0000-000000000001'::uuid,              -- กลุ่ม C
+  '11111111-1111-1111-1111-000000000003'::uuid,               -- ผู้สั่งยกเลิก
+  'เปลี่ยนแผนการเดินทาง'         -- เหตุผล
+);</code></pre>
+    <table class="res"><thead><tr><th>p_message</th></tr></thead><tbody><tr><td>ยกเลิกกลุ่มสำเร็จ (เปลี่ยนแผนการเดินทาง)</td></tr></tbody></table>
+    
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">7</span><span class="ttl">ตรวจผลหลังยกเลิก — กลุ่ม C เป็น cancelled และมี event</span></div>
+    <pre class="sql"><code>select left(id::text,8) as group_id, status, driver_id
+from public.ride_groups where id = 'cccccccc-0000-0000-0000-000000000001';
+
+select event, detail from public.ride_group_events where group_id = 'cccccccc-0000-0000-0000-000000000001';</code></pre>
+    <table class="res"><thead><tr><th>group_id</th><th>status</th><th>driver_id</th></tr></thead><tbody><tr><td class="mono">cccccccc…</td><td>cancelled</td><td class="null">NULL</td></tr></tbody></table><p class="sub-note" style="font-size:12.5px;color:#6b7688;margin:6px 0 2px;">และตาราง event log:</p><table class="res"><thead><tr><th>event</th><th>detail</th></tr></thead><tbody><tr><td>cancelled</td><td>เปลี่ยนแผนการเดินทาง</td></tr></tbody></table>
+    
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">8</span><span class="ttl">เตรียมทดสอบงานประจํา — ทําให้กลุ่ม B เก่ากว่า 1 ชั่วโมง</span></div>
+    <pre class="sql"><code>update public.ride_groups
+   set created_at = now() - interval '5 hours'
+ where id = 'bbbbbbbb-0000-0000-0000-000000000001';</code></pre>
+    <table class="res"><thead><tr><th>group_id</th><th>status</th><th>created_at</th><th>age</th></tr></thead><tbody><tr><td class="mono">bbbbbbbb…</td><td>forming</td><td>2026-10-12T06:52:14.057Z</td><td>05:00:00.001</td></tr></tbody></table>
+    <p class="note">จําลองกลุ่มที่ค้างรวมคนมานานเกินกําหนด</p>
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">9</span><span class="ttl">CALL sp_expire_stale_groups('1 hour') — งานประจําปิดกลุ่มที่ค้าง</span></div>
+    <pre class="sql"><code>call public.sp_expire_stale_groups('1 hour'::interval);</code></pre>
+    <table class="res"><thead><tr><th>p_expired</th></tr></thead><tbody><tr><td class="num">1</td></tr></tbody></table>
+    <p class="note">ค่าที่คืนผ่าน INOUT parameter = จำนวนกลุ่มที่ถูกปิด</p>
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">10</span><span class="ttl">ตรวจผล — กลุ่ม B ถูกปิดอัตโนมัติ + event log ทั้งหมด</span></div>
+    <pre class="sql"><code>select left(id::text,8) as group_id, status from public.ride_groups where id = 'bbbbbbbb-0000-0000-0000-000000000001';
+
+select e.event, e.detail, left(e.group_id::text,8) as group_id
+from public.ride_group_events e order by e.id;</code></pre>
+    <table class="res"><thead><tr><th>group_id</th><th>status</th></tr></thead><tbody><tr><td class="mono">bbbbbbbb…</td><td>cancelled</td></tr></tbody></table><p class="sub-note" style="font-size:12.5px;color:#6b7688;margin:6px 0 2px;">และตาราง event log:</p><table class="res"><thead><tr><th>event</th><th>detail</th><th>group_id</th></tr></thead><tbody><tr><td>accepted</td><td>คนขับรับงาน: ผู้โดยสาร 3/4 คน</td><td class="mono">aaaaaaaa…</td></tr><tr><td>cancelled</td><td>เปลี่ยนแผนการเดินทาง</td><td class="mono">cccccccc…</td></tr><tr><td>expired</td><td>หมดเวลารวมคนอัตโนมัติ</td><td class="mono">bbbbbbbb…</td></tr></tbody></table>
+    
+  </div>
+<p class="caption">ภาพที่ 5 — ผลเรียก sp_cancel_ride_group() และ sp_expire_stale_groups()</p>
+
+<h2>8. รายการ Stored Procedure ทั้งหมดในฐานข้อมูล</h2>
+<p>ตรวจสอบจากตารางระบบ <code>pg_proc</code> โดยเลือกเฉพาะ <code>prokind = 'p'</code> (procedure)</p>
+<table class="res"><thead><tr><th>procedure_name</th><th>arguments</th><th>language</th></tr></thead><tbody><tr><td>sp_accept_ride_group</td><td class="small">IN p_group_id uuid, IN p_driver_id uuid, INOUT p_message text DEFAULT ''::text</td><td>plpgsql</td></tr><tr><td>sp_cancel_ride_group</td><td class="small">IN p_group_id uuid, IN p_actor_id uuid, IN p_reason text, INOUT p_message text DEFAULT ''::text</td><td>plpgsql</td></tr><tr><td>sp_expire_stale_groups</td><td class="small">IN p_older_than interval, INOUT p_expired integer DEFAULT 0</td><td>plpgsql</td></tr></tbody></table>
+<p class="caption">ภาพที่ 6 — ตารางแสดง Stored Procedure ทั้งหมด</p>
+
+<h2>9. สรุป</h2>
+<ul>
+  <li>กลุ่มเราเพิ่ม <b>Stored Procedure จำนวน 3 ตัว</b> เรียกใช้ด้วยคําสั่ง <code>CALL</code></li>
+  <li>ทดสอบแล้ว procedure ทํางานหลายขั้นตอนในคําสั่งเดียวได้จริง พร้อมบันทึก event log อัตโนมัติ</li>
+  <li>การตรวจเงื่อนไขทํางานถูกต้อง: รับงานซ้ำถูกปฏิเสธ, ผู้โดยสารรับงานแทนคนขับถูกปฏิเสธ</li>
+  <li>งานประจํา <code>sp_expire_stale_groups()</code> ปิดกลุ่มที่ค้างเกินเวลาได้ถูกต้อง และคืนจํานวนผ่าน INOUT</li>
+</ul>
+<div class="footer">UP Drive — รายงาน Stored Procedure · ฐานข้อมูล: PostgreSQL / Supabase</div>
+</div></body></html>

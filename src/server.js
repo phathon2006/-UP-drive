@@ -2766,29 +2766,38 @@ app.use(
    START SERVER
 ========================================================= */
 
-app.listen(
-    PORT,
-    () => {
+/*
+    รันเซิร์ฟเวอร์จริงเมื่อสั่ง `node src/server.js`
+    (บน Vercel จะไม่เรียก listen — Vercel ใช้ module.exports ด้านล่าง)
+*/
+if (require.main === module) {
+    app.listen(
+        PORT,
+        () => {
 
-        console.log("");
-        console.log(
-            "===================================="
-        );
-        console.log(
-            "🚗 UP-Drive Server"
-        );
-        console.log(
-            "===================================="
-        );
-        console.log(
-            `🌐 http://localhost:${PORT}`
-        );
-        console.log(
-            "🟢 Server started successfully"
-        );
-        console.log(
-            "===================================="
-        );
-        console.log("");
-    }
-);
+            console.log("");
+            console.log(
+                "===================================="
+            );
+            console.log(
+                "🚗 UP-Drive Server"
+            );
+            console.log(
+                "===================================="
+            );
+            console.log(
+                `🌐 http://localhost:${PORT}`
+            );
+            console.log(
+                "🟢 Server started successfully"
+            );
+            console.log(
+                "===================================="
+            );
+            console.log("");
+        }
+    );
+}
+
+/* Vercel / serverless: export แอปให้ Vercel เรียกใช้ */
+module.exports = app;

@@ -388,6 +388,296 @@ using (
 );
 
 -- =========================================================
+-- TRIGGERS
+-- =========================================================
+
+-- ตั้งเวลา confirmed_at / accepted_at / completed_at
+-- อัตโนมัติเมื่อสถานะของกลุ่มเปลี่ยน
+create or replace function public.sync_group_status_timestamps()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.status is distinct from old.status then
+
+    if new.status = 'sent_to_driver'
+       and new.confirmed_at is null then
+      new.confirmed_at := now();
+    end if;
+
+    if new.status = 'accepted'
+       and new.accepted_at is null then
+      new.accepted_at := now();
+    end if;
+
+    if new.status = 'completed'
+       and new.completed_at is null then
+      new.completed_at := now();
+    end if;
+
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger trg_ride_groups_status_timestamps
+before update on public.ride_groups
+for each row
+execute function public.sync_group_status_timestamps();
+
+-- ห้ามตั้งสถานะ accepted ถ้ายังไม่มีคนขับ
+create or replace function public.enforce_group_driver_rules()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.status = 'accepted' and new.driver_id is null then
+    raise exception
+      'ride_groups: ตั้งสถานะ accepted ไม่ได้ถ้าไม่มีคนขับ (driver_id)';
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger trg_ride_groups_driver_rules
+before update on public.ride_groups
+for each row
+execute function public.enforce_group_driver_rules();
+
+-- อัปเดต updated_at ของตำแหน่งคนขับให้เป็นปัจจุบันเสมอ
+create or replace function public.touch_driver_location()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+create trigger trg_driver_locations_touch
+before update on public.driver_locations
+for each row
+execute function public.touch_driver_location();
+
+-- =========================================================
+-- SQL FUNCTIONS
+-- =========================================================
+
+-- คำนวณระยะทางระหว่างพิกัด 2 จุด (กิโลเมตร) ด้วยสูตร Haversine
+create or replace function public.haversine_km(
+  lat1 double precision,
+  lng1 double precision,
+  lat2 double precision,
+  lng2 double precision
+)
+returns double precision
+language sql
+immutable
+as $$
+  select round(
+    (
+      6371 * 2 * asin(
+        sqrt(
+          power(sin(radians(lat2 - lat1) / 2), 2) +
+          cos(radians(lat1)) * cos(radians(lat2)) *
+          power(sin(radians(lng2 - lng1) / 2), 2)
+        )
+      )
+    )::numeric,
+    3
+  )::double precision;
+$$;
+
+-- นับจำนวนผู้โดยสารรวมของกลุ่ม (ผลรวม party_size ของสมาชิก)
+create or replace function public.group_passenger_total(
+  p_group_id uuid
+)
+returns integer
+language sql
+stable
+as $$
+  select coalesce(sum(m.party_size), 0)::integer
+  from public.ride_group_members m
+  where m.group_id = p_group_id;
+$$;
+
+-- หากลุ่มที่กำลังรวมคน (forming) ซึ่งอยู่ใกล้คำขอเดินทางใหม่
+-- คืนผลเป็นตาราง พร้อมคะแนน (ยิ่งน้อย = ยิ่งใกล้)
+create or replace function public.find_candidate_groups(
+  p_origin_lat double precision,
+  p_origin_lng double precision,
+  p_dest_lat double precision,
+  p_dest_lng double precision,
+  p_max_pickup_km double precision default 4,
+  p_max_dest_km double precision default 6
+)
+returns table (
+  group_id uuid,
+  leader_id uuid,
+  target_passengers integer,
+  current_passengers integer,
+  pickup_km double precision,
+  destination_km double precision,
+  score double precision
+)
+language sql
+stable
+as $$
+  select
+    g.id,
+    g.leader_id,
+    g.target_passengers,
+    public.group_passenger_total(g.id),
+    public.haversine_km(p_origin_lat, p_origin_lng, r.origin_lat, r.origin_lng),
+    public.haversine_km(p_dest_lat, p_dest_lng, r.destination_lat, r.destination_lng),
+    public.haversine_km(p_origin_lat, p_origin_lng, r.origin_lat, r.origin_lng)
+      + public.haversine_km(p_dest_lat, p_dest_lng, r.destination_lat, r.destination_lng)
+  from public.ride_groups g
+  join public.ride_requests r on r.group_id = g.id
+  where g.status = 'forming'
+    and public.haversine_km(p_origin_lat, p_origin_lng, r.origin_lat, r.origin_lng)
+        <= p_max_pickup_km
+    and public.haversine_km(p_dest_lat, p_dest_lng, r.destination_lat, r.destination_lng)
+        <= p_max_dest_km
+  order by 7 asc;
+$$;
+
+-- =========================================================
+-- STORED PROCEDURES
+-- =========================================================
+
+-- ตารางบันทึกเหตุการณ์ของกลุ่ม ใช้เป็น audit log ของ procedure
+create table if not exists public.ride_group_events (
+  id bigserial primary key,
+  group_id uuid not null references public.ride_groups(id) on delete cascade,
+  actor_id uuid references public.profiles(id),
+  event text not null,
+  detail text,
+  created_at timestamptz not null default now()
+);
+
+-- คนขับรับงาน : ตรวจเงื่อนไข -> มอบหมายคนขับ -> ตั้งสถานะ accepted -> บันทึก event
+create or replace procedure public.sp_accept_ride_group(
+  p_group_id uuid,
+  p_driver_id uuid,
+  inout p_message text default ''
+)
+language plpgsql
+as $$
+declare
+  v_status  text;
+  v_target  integer;
+  v_current integer;
+begin
+  select status, target_passengers
+    into v_status, v_target
+  from public.ride_groups
+  where id = p_group_id
+  for update;
+
+  if not found then
+    raise exception 'ไม่พบกลุ่ม %', p_group_id;
+  end if;
+
+  if v_status not in ('forming', 'sent_to_driver') then
+    raise exception 'กลุ่มสถานะ % รับงานไม่ได้', v_status;
+  end if;
+
+  if not exists (
+    select 1 from public.profiles
+    where id = p_driver_id and role = 'driver'
+  ) then
+    raise exception 'ผู้ใช้ % ไม่ใช่คนขับ', p_driver_id;
+  end if;
+
+  v_current := public.group_passenger_total(p_group_id);
+
+  update public.ride_groups
+     set driver_id = p_driver_id,
+         status    = 'accepted'
+   where id = p_group_id;
+
+  insert into public.ride_group_events (group_id, actor_id, event, detail)
+  values (p_group_id, p_driver_id, 'accepted',
+          format('คนขับรับงาน: ผู้โดยสาร %s/%s คน', v_current, v_target));
+
+  p_message := format('รับงานสำเร็จ: ผู้โดยสาร %s/%s คน', v_current, v_target);
+end;
+$$;
+
+-- ยกเลิกกลุ่ม : ตั้งสถานะ cancelled -> คืนคนขับ -> บันทึก event
+create or replace procedure public.sp_cancel_ride_group(
+  p_group_id uuid,
+  p_actor_id uuid,
+  p_reason   text,
+  inout p_message text default ''
+)
+language plpgsql
+as $$
+declare
+  v_status text;
+begin
+  select status
+    into v_status
+  from public.ride_groups
+  where id = p_group_id
+  for update;
+
+  if not found then
+    raise exception 'ไม่พบกลุ่ม %', p_group_id;
+  end if;
+
+  if v_status in ('completed', 'cancelled') then
+    raise exception 'กลุ่มสถานะ % ยกเลิกไม่ได้', v_status;
+  end if;
+
+  update public.ride_groups
+     set status    = 'cancelled',
+         driver_id = null
+   where id = p_group_id;
+
+  insert into public.ride_group_events (group_id, actor_id, event, detail)
+  values (p_group_id, p_actor_id, 'cancelled', p_reason);
+
+  p_message := format('ยกเลิกกลุ่มสำเร็จ (%s)', p_reason);
+end;
+$$;
+
+-- งานประจำ : ปิดกลุ่มที่รวมคนเกินเวลาที่กำหนด แล้วบันทึก event
+create or replace procedure public.sp_expire_stale_groups(
+  p_older_than interval,
+  inout p_expired integer default 0
+)
+language plpgsql
+as $$
+declare
+  v_ids uuid[];
+begin
+  with stale as (
+    update public.ride_groups
+       set status = 'cancelled'
+     where status = 'forming'
+       and created_at < now() - p_older_than
+    returning id
+  )
+  select array_agg(id) into v_ids from stale;
+
+  if v_ids is null then
+    p_expired := 0;
+    return;
+  end if;
+
+  insert into public.ride_group_events (group_id, event, detail)
+  select unnest(v_ids), 'expired', 'หมดเวลารวมคนอัตโนมัติ';
+
+  p_expired := array_length(v_ids, 1);
+end;
+$$;
+
+-- =========================================================
 -- REALTIME
 -- =========================================================
 

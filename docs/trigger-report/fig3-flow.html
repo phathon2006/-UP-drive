@@ -1,0 +1,105 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8">
+<title>flow</title><style>
+:root{--ink:#1b2434;--muted:#6b7688;--line:#e2e8f0;--accent:#2563eb;--ok:#16a34a;--warn:#dc2626;--bg:#eef2f8;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Segoe UI","Leelawadee UI","Noto Sans Thai",Tahoma,system-ui,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;}
+.page{width:960px;margin:0 auto;background:#fff;padding:44px 52px;box-shadow:0 10px 40px rgba(15,23,42,.08);}
+h1{font-size:30px;margin:0 0 6px;letter-spacing:-.3px;}
+h2{font-size:21px;margin:38px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line);}
+h3{font-size:16px;margin:26px 0 8px;}
+.sub{color:var(--muted);font-size:14px;margin:0;}
+.kicker{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);background:#e8f0fe;padding:4px 10px;border-radius:999px;}
+hr{border:0;border-top:1px solid var(--line);margin:30px 0;}
+p{margin:10px 0;}
+code{font-family:"Cascadia Code",Consolas,"Courier New",monospace;}
+pre.sql{background:#1e2430;color:#e6edf3;border-radius:10px;padding:16px 18px;overflow:auto;
+  font-size:12.5px;line-height:1.55;margin:10px 0;border:1px solid #0f172a;}
+pre.sql .fn{color:#7ee787;}
+.caption{font-size:12.5px;color:var(--muted);margin:6px 0 0;}
+table.res{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;}
+table.res th{background:#eef2f7;text-align:left;padding:8px 10px;border:1px solid var(--line);
+  font-weight:600;font-size:12px;color:#334155;}
+table.res td{padding:7px 10px;border:1px solid var(--line);}
+td.mono,.mono{font-family:"Cascadia Code",Consolas,monospace;font-size:12px;}
+td.small{font-size:11px;color:#475569;}
+td.null{color:#94a3b8;font-style:italic;}
+td.ts{background:#eafaf0;font-family:"Cascadia Code",Consolas,monospace;font-size:12px;color:#166534;font-weight:600;}
+td.muted,.muted{color:var(--muted);}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#e2e8f0;color:#334155;}
+.badge.s-forming{background:#fef3c7;color:#92400e;}
+.badge.s-sent_to_driver{background:#dbeafe;color:#1e40af;}
+.badge.s-accepted{background:#e0e7ff;color:#3730a3;}
+.badge.s-completed{background:#dcfce7;color:#166534;}
+.step{margin:18px 0 26px;}
+.step .hd{display:flex;gap:10px;align-items:baseline;margin-bottom:4px;}
+.step .no{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;
+  font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.step .ttl{font-weight:700;font-size:15px;}
+.note{background:#fff7e6;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13.5px;}
+.err{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;color:#991b1b;
+  font-family:"Cascadia Code",Consolas,monospace;font-size:12.5px;}
+.ok{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;color:#166534;font-size:13.5px;}
+ul{margin:8px 0 8px 4px;padding-left:20px;}
+li{margin:4px 0;}
+.lead{font-size:15px;color:#334155;}
+.flowgrid{display:grid;grid-template-columns:1fr;gap:0;}
+.fig{background:#fff;}
+.footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+
+.page{width:960px;}</style></head>
+<body><div class="page">
+<h2>4. ผลการทดสอบ — การตั้งเวลาอัตโนมัติ</h2>
+<p class="lead">ทดสอบโดยเปลี่ยนสถานะกลุ่มไปเรื่อย ๆ แล้วดูว่าเวลาในคอลัมน์
+<code>confirmed_at</code>, <code>accepted_at</code>, <code>completed_at</code> ถูกเติมเองโดย Trigger หรือไม่</p>
+<div class="step">
+    <div class="hd"><span class="no">1</span><span class="ttl">สร้างกลุ่มใหม่ (status = forming)</span></div>
+    <pre class="sql"><code>insert into public.ride_groups (id, leader_id, target_passengers, status)
+values ('aaaaaaaa-1111-1111-1111-111111111111', '&lt;leader&gt;', 4, 'forming');</code></pre>
+    
+    
+    <table class="res"><thead><tr><th>status</th><th>driver_id</th><th>confirmed_at</th><th>accepted_at</th><th>completed_at</th></tr></thead><tbody><tr><td><span class="badge s-forming">forming</span></td><td class="null">NULL</td><td class="null">NULL</td><td class="null">NULL</td><td class="null">NULL</td></tr></tbody></table>
+    
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">2</span><span class="ttl">เปลี่ยนสถานะเป็น sent_to_driver (สมาชิกยืนยันครบ)</span></div>
+    <pre class="sql"><code>update public.ride_groups
+set status = 'sent_to_driver'
+where id = 'aaaaaaaa-1111-1111-1111-111111111111';</code></pre>
+    
+    
+    <table class="res"><thead><tr><th>status</th><th>confirmed_at</th><th>accepted_at</th><th>completed_at</th></tr></thead><tbody><tr><td><span class="badge s-sent_to_driver">sent_to_driver</span></td><td class="ts">12 ต.ค. 2569 17:23:32</td><td class="null">NULL</td><td class="null">NULL</td></tr></tbody></table>
+    
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">3</span><span class="ttl">คนขับรับงาน -&gt; assigned driver + status = accepted</span></div>
+    <pre class="sql"><code>update public.ride_groups
+set driver_id = '&lt;driver&gt;', status = 'accepted'
+where id = 'aaaaaaaa-1111-1111-1111-111111111111';</code></pre>
+    
+    
+    <table class="res"><thead><tr><th>status</th><th>driver_id</th><th>confirmed_at</th><th>accepted_at</th><th>completed_at</th></tr></thead><tbody><tr><td><span class="badge s-accepted">accepted</span></td><td class="mono small">33333333-3333-3333-3333-333333333333</td><td class="ts">12 ต.ค. 2569 17:23:32</td><td class="ts">12 ต.ค. 2569 17:23:33</td><td class="null">NULL</td></tr></tbody></table>
+    
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">4</span><span class="ttl">เดินทางเสร็จ -&gt; status = completed</span></div>
+    <pre class="sql"><code>update public.ride_groups
+set status = 'completed'
+where id = 'aaaaaaaa-1111-1111-1111-111111111111';</code></pre>
+    
+    
+    <table class="res"><thead><tr><th>status</th><th>confirmed_at</th><th>accepted_at</th><th>completed_at</th></tr></thead><tbody><tr><td><span class="badge s-completed">completed</span></td><td class="ts">12 ต.ค. 2569 17:23:32</td><td class="ts">12 ต.ค. 2569 17:23:33</td><td class="ts">12 ต.ค. 2569 17:23:35</td></tr></tbody></table>
+    
+  </div>
+<div class="step">
+    <div class="hd"><span class="no">5</span><span class="ttl">แก้ไขฟิลด์อื่น (target_passengers) ไม่เปลี่ยนสถานะ =&gt; เวลาเดิมไม่ถูกเขียนทับ</span></div>
+    <pre class="sql"><code>update public.ride_groups set target_passengers = 3 where id = 'aaaaaaaa-1111-1111-1111-111111111111';</code></pre>
+    
+    
+    <table class="res"><thead><tr><th>confirmed_at</th><th>accepted_at</th><th>completed_at</th></tr></thead><tbody><tr><td class="ts">12 ต.ค. 2569 17:23:32</td><td class="ts">12 ต.ค. 2569 17:23:33</td><td class="ts">12 ต.ค. 2569 17:23:35</td></tr></tbody></table>
+    <p class="ok">ผลลัพธ์: ค่าเวลาเดิมทั้ง 3 ช่อง <b>ไม่ถูกเขียนทับ</b> (timestamps unchanged = true) — Trigger ทำงานแบบ idempotent</p>
+  </div>
+<p class="caption">ภาพที่ 2 — ลำดับการเปลี่ยนสถานะ และเวลาที่ Trigger เติมให้ (ช่องสีเขียว)</p>
+</div></body></html>

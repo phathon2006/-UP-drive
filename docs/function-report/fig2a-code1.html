@@ -1,0 +1,88 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><title>code1</title><style>
+:root{--ink:#1b2434;--muted:#6b7688;--line:#e2e8f0;--accent:#0d9488;--bg:#eef2f8;}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Leelawadee UI","Noto Sans Thai",Tahoma,system-ui,sans-serif;line-height:1.6;}
+.page{width:960px;margin:0 auto;background:#fff;padding:44px 52px;box-shadow:0 10px 40px rgba(15,23,42,.08);}
+h1{font-size:30px;margin:0 0 6px;letter-spacing:-.3px;}
+h2{font-size:21px;margin:38px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line);}
+.sub{color:var(--muted);font-size:14px;margin:0;}
+.kicker{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);background:#ccfbf1;padding:4px 10px;border-radius:999px;}
+hr{border:0;border-top:1px solid var(--line);margin:30px 0;}
+p{margin:10px 0;} code{font-family:"Cascadia Code",Consolas,monospace;}
+pre.sql{background:#1e2430;color:#e6edf3;border-radius:10px;padding:16px 18px;overflow:auto;font-size:12.5px;line-height:1.55;margin:10px 0;border:1px solid #0f172a;}
+table.res{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;table-layout:fixed;}
+table.res th{background:#eef2f7;text-align:left;padding:8px 10px;border:1px solid var(--line);font-weight:600;font-size:12px;color:#334155;word-break:break-word;}
+table.res td{padding:7px 10px;border:1px solid var(--line);word-break:break-word;}
+td.mono,.mono{font-family:"Cascadia Code",Consolas,monospace;font-size:12px;}
+td.small{font-size:11px;color:#475569;font-family:"Cascadia Code",Consolas,monospace;}
+td.num{font-family:"Cascadia Code",Consolas,monospace;font-weight:700;color:#166534;}
+td.null,.muted{color:var(--muted);}
+.caption{font-size:12.5px;color:var(--muted);margin:6px 0 0;}
+.step{margin:18px 0 26px;}
+.step .hd{display:flex;gap:10px;align-items:baseline;margin-bottom:4px;}
+.step .no{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.step .ttl{font-weight:700;font-size:15px;}
+.note{background:#ecfeff;border:1px solid #a5f3fc;border-radius:8px;padding:10px 14px;font-size:13.5px;color:#155e75;}
+.lead{font-size:15px;color:#334155;}
+ul{margin:8px 0 8px 4px;padding-left:20px;} li{margin:4px 0;}
+.footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.card h4{margin:0 0 6px;font-size:14px;color:var(--accent);}
+.page{width:900px;}</style></head><body><div class="page">
+<h2>4. โค้ด SQL Function ของกลุ่ม (1/2)</h2>
+<pre class="sql"><code>-- =========================================================
+-- UP DRIVE V2 - SQL FUNCTIONS
+-- ระบบแชร์รถ มหาวิทยาลัยพะเยา (กลุ่ม UP Drive)
+-- รันบน PostgreSQL / Supabase
+-- =========================================================
+
+-- ---------------------------------------------------------
+-- FUNCTION 1: haversine_km  (scalar function, ภาษา SQL)
+--   คำนวณระยะทางระหว่างพิกัด 2 จุด หน่วยเป็นกิโลเมตร
+--   ใช้สูตร Haversine เหมือนที่ฝั่งแอปเคยคำนวณเอง
+-- ---------------------------------------------------------
+create or replace function public.haversine_km(
+  lat1 double precision,
+  lng1 double precision,
+  lat2 double precision,
+  lng2 double precision
+)
+returns double precision
+language sql
+immutable
+as $$
+  select round(
+    (
+      6371 * 2 * asin(
+        sqrt(
+          power(sin(radians(lat2 - lat1) / 2), 2) +
+          cos(radians(lat1)) * cos(radians(lat2)) *
+          power(sin(radians(lng2 - lng1) / 2), 2)
+        )
+      )
+    )::numeric,
+    3
+  )::double precision;
+$$;
+
+
+-- ---------------------------------------------------------
+-- FUNCTION 2: group_passenger_total  (scalar function, ภาษา SQL)
+--   นับจำนวนผู้โดยสารรวมของกลุ่ม (ผลรวม party_size ของสมาชิก)
+--   ถ้ากลุ่มยังไม่มีสมาชิก จะคืนค่า 0
+-- ---------------------------------------------------------
+create or replace function public.group_passenger_total(
+  p_group_id uuid
+)
+returns integer
+language sql
+stable
+as $$
+  select coalesce(sum(m.party_size), 0)::integer
+  from public.ride_group_members m
+  where m.group_id = p_group_id;
+$$;
+
+
+-- ---------------------------------------------------------</code></pre></div></body></html>

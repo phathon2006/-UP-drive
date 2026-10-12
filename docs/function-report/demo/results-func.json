@@ -1,0 +1,174 @@
+{
+  "db": "PostgreSQL 16 (PGlite / WASM)",
+  "steps": [
+    {
+      "no": 1,
+      "title": "ข้อมูลตั้งต้น — กลุ่มที่กำลังรวมคน (status = forming)",
+      "sql": "select g.id, p.name as leader, g.target_passengers as target,\n       public.group_passenger_total(g.id) as current, r.origin_text, r.destination_text\nfrom public.ride_groups g\njoin public.profiles p on p.id = g.leader_id\njoin public.ride_requests r on r.group_id = g.id\nwhere g.status = 'forming'\norder by g.id;",
+      "result": {
+        "columns": [
+          "group_id",
+          "leader",
+          "target",
+          "current",
+          "origin_text",
+          "destination_text"
+        ],
+        "rows": [
+          {
+            "group_id": "aaaaaaaa",
+            "leader": "สมชาย (หัวหน้ากลุ่ม A)",
+            "target": 4,
+            "current": 3,
+            "origin_text": "หน้ามหาวิทยาลัยพะเยา",
+            "destination_text": "ตลาดพะเยา"
+          },
+          {
+            "group_id": "bbbbbbbb",
+            "leader": "ปิติ (หัวหน้ากลุ่ม B)",
+            "target": 2,
+            "current": 1,
+            "origin_text": "อำเภอแม่ใจ",
+            "destination_text": "ตัวเมืองพะเยา"
+          },
+          {
+            "group_id": "cccccccc",
+            "leader": "มานะ (หัวหน้ากลุ่ม C)",
+            "target": 3,
+            "current": 1,
+            "origin_text": "ประตู 2 ม.พะเยา",
+            "destination_text": "บิ๊กซีพะเยา"
+          }
+        ]
+      }
+    },
+    {
+      "no": 2,
+      "title": "เรียก FUNCTION 1: haversine_km() — วัดระยะทางจากจุดรับใหม่ไปยังแต่ละกลุ่ม",
+      "sql": "select * from (values\n  ('จุดรับใหม่ -> กลุ่ม A', public.haversine_km(19.0295, 99.8955, 19.0302, 99.8962)),\n  ('จุดรับใหม่ -> กลุ่ม C', public.haversine_km(19.0295, 99.8955, 19.0320, 99.8980)),\n  ('จุดรับใหม่ -> กลุ่ม B', public.haversine_km(19.0295, 99.8955, 19.0600, 99.9300))\n) as t(คู่พิกัด, ระยะทาง_km);",
+      "result": {
+        "columns": [
+          "pair",
+          "distance_km"
+        ],
+        "rows": [
+          {
+            "pair": "จุดรับใหม่ -> กลุ่ม A",
+            "distance_km": 0.107
+          },
+          {
+            "pair": "จุดรับใหม่ -> กลุ่ม C",
+            "distance_km": 0.383
+          },
+          {
+            "pair": "จุดรับใหม่ -> กลุ่ม B",
+            "distance_km": 4.965
+          }
+        ]
+      }
+    },
+    {
+      "no": 3,
+      "title": "เรียก FUNCTION 2: group_passenger_total() — นับผู้โดยสารในแต่ละกลุ่ม",
+      "sql": "select\n  public.group_passenger_total('aaaaaaaa-0000-0000-0000-000000000001') as group_a,\n  public.group_passenger_total('cccccccc-0000-0000-0000-000000000001') as group_c,\n  public.group_passenger_total('bbbbbbbb-0000-0000-0000-000000000001') as group_b,\n  public.group_passenger_total('00000000-0000-0000-0000-000000000000') as group_ว่าง;",
+      "result": {
+        "columns": [
+          "group_a",
+          "group_c",
+          "group_b",
+          "empty_group"
+        ],
+        "rows": [
+          {
+            "group_a": 3,
+            "group_c": 1,
+            "group_b": 1,
+            "empty_group": 0
+          }
+        ]
+      }
+    },
+    {
+      "no": 4,
+      "title": "เรียก FUNCTION 3: find_candidate_groups() — คืนผลเป็นตารางกลุ่มที่ใกล้ที่สุด",
+      "sql": "select * from public.find_candidate_groups(\n  19.0295, 99.8955,   -- จุดรับของผู้โดยสารใหม่\n  19.0300, 99.8900,   -- ปลายทางของผู้โดยสารใหม่\n  4, 6                -- รัศมี จุดรับ 4 km / ปลายทาง 6 km\n);",
+      "result": {
+        "columns": [
+          "group_id",
+          "target",
+          "current",
+          "pickup_km",
+          "destination_km",
+          "score"
+        ],
+        "rows": [
+          {
+            "group_id": "aaaaaaaa",
+            "target": 4,
+            "current": 3,
+            "pickup_km": 0.107,
+            "destination_km": 0.077,
+            "score": 0.184
+          },
+          {
+            "group_id": "cccccccc",
+            "target": 3,
+            "current": 1,
+            "pickup_km": 0.383,
+            "destination_km": 0.394,
+            "score": 0.777
+          }
+        ]
+      },
+      "note": "กลุ่ม B ถูกตัดออก เพราะจุดรับไกลเกิน 4 km / กลุ่มที่เหลือเรียงตาม score (น้อย = ใกล้กว่า)"
+    },
+    {
+      "no": 5,
+      "title": "ปรับพารามิเตอร์รัศมีให้แคบลง (จุดรับ <= 0.3 km) — ผลลัพธ์เปลี่ยนตาม parameter",
+      "sql": "select group_id, pickup_km, score\nfrom public.find_candidate_groups(19.0295, 99.8955, 19.0300, 99.8900, 0.3, 6);",
+      "result": {
+        "columns": [
+          "group_id",
+          "pickup_km",
+          "score"
+        ],
+        "rows": [
+          {
+            "group_id": "aaaaaaaa",
+            "pickup_km": 0.107,
+            "score": 0.184
+          }
+        ]
+      },
+      "note": "เหลือเฉพาะกลุ่ม A เพราะกลุ่ม C อยู่ไกลเกิน 0.3 km"
+    }
+  ],
+  "functions": {
+    "columns": [
+      "function_name",
+      "arguments",
+      "returns",
+      "language"
+    ],
+    "rows": [
+      {
+        "function_name": "find_candidate_groups",
+        "arguments": "p_origin_lat double precision, p_origin_lng double precision, p_dest_lat double precision, p_dest_lng double precision, p_max_pickup_km double precision DEFAULT 4, p_max_dest_km double precision DEFAULT 6",
+        "returns": "TABLE(group_id uuid, leader_id uuid, target_passengers integer, current_passengers integer, pickup_km double precision, destination_km double precision, score double precision)",
+        "language": "sql"
+      },
+      {
+        "function_name": "group_passenger_total",
+        "arguments": "p_group_id uuid",
+        "returns": "integer",
+        "language": "sql"
+      },
+      {
+        "function_name": "haversine_km",
+        "arguments": "lat1 double precision, lng1 double precision, lat2 double precision, lng2 double precision",
+        "returns": "double precision",
+        "language": "sql"
+      }
+    ]
+  }
+}

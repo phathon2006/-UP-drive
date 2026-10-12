@@ -1,0 +1,192 @@
+{
+  "db": "PostgreSQL 16 (PGlite / WASM)",
+  "steps": [
+    {
+      "no": 1,
+      "title": "สร้างกลุ่มใหม่ (status = forming)",
+      "sql": "insert into public.ride_groups (id, leader_id, target_passengers, status)\nvalues ('aaaaaaaa-1111-1111-1111-111111111111', '<leader>', 4, 'forming');",
+      "result": {
+        "columns": [
+          "status",
+          "driver_id",
+          "confirmed_at",
+          "accepted_at",
+          "completed_at"
+        ],
+        "rows": [
+          {
+            "status": "forming",
+            "driver_id": null,
+            "confirmed_at": null,
+            "accepted_at": null,
+            "completed_at": null
+          }
+        ]
+      }
+    },
+    {
+      "no": 2,
+      "title": "เปลี่ยนสถานะเป็น sent_to_driver (สมาชิกยืนยันครบ)",
+      "sql": "update public.ride_groups\nset status = 'sent_to_driver'\nwhere id = 'aaaaaaaa-1111-1111-1111-111111111111';",
+      "result": {
+        "columns": [
+          "status",
+          "confirmed_at",
+          "accepted_at",
+          "completed_at"
+        ],
+        "rows": [
+          {
+            "status": "sent_to_driver",
+            "confirmed_at": "2026-10-12T10:23:32.658Z",
+            "accepted_at": null,
+            "completed_at": null
+          }
+        ]
+      }
+    },
+    {
+      "no": 3,
+      "title": "คนขับรับงาน -> assigned driver + status = accepted",
+      "sql": "update public.ride_groups\nset driver_id = '<driver>', status = 'accepted'\nwhere id = 'aaaaaaaa-1111-1111-1111-111111111111';",
+      "result": {
+        "columns": [
+          "status",
+          "driver_id",
+          "confirmed_at",
+          "accepted_at",
+          "completed_at"
+        ],
+        "rows": [
+          {
+            "status": "accepted",
+            "driver_id": "33333333-3333-3333-3333-333333333333",
+            "confirmed_at": "2026-10-12T10:23:32.658Z",
+            "accepted_at": "2026-10-12T10:23:33.881Z",
+            "completed_at": null
+          }
+        ]
+      }
+    },
+    {
+      "no": 4,
+      "title": "เดินทางเสร็จ -> status = completed",
+      "sql": "update public.ride_groups\nset status = 'completed'\nwhere id = 'aaaaaaaa-1111-1111-1111-111111111111';",
+      "result": {
+        "columns": [
+          "status",
+          "confirmed_at",
+          "accepted_at",
+          "completed_at"
+        ],
+        "rows": [
+          {
+            "status": "completed",
+            "confirmed_at": "2026-10-12T10:23:32.658Z",
+            "accepted_at": "2026-10-12T10:23:33.881Z",
+            "completed_at": "2026-10-12T10:23:35.099Z"
+          }
+        ]
+      }
+    },
+    {
+      "no": 5,
+      "title": "แก้ไขฟิลด์อื่น (target_passengers) ไม่เปลี่ยนสถานะ => เวลาเดิมไม่ถูกเขียนทับ",
+      "sql": "update public.ride_groups set target_passengers = 3 where id = 'aaaaaaaa-1111-1111-1111-111111111111';",
+      "result": {
+        "columns": [
+          "confirmed_at",
+          "accepted_at",
+          "completed_at"
+        ],
+        "rows": [
+          {
+            "confirmed_at": "2026-10-12T10:23:32.658Z",
+            "accepted_at": "2026-10-12T10:23:33.881Z",
+            "completed_at": "2026-10-12T10:23:35.099Z"
+          }
+        ]
+      },
+      "unchanged": true
+    },
+    {
+      "no": 6,
+      "title": "พยายามตั้ง accepted โดยไม่มีคนขับ => ถูก trigger บล็อก",
+      "sql": "update public.ride_groups\nset status = 'accepted'\nwhere id = 'bbbbbbbb-2222-2222-2222-222222222222';",
+      "error": "ride_groups: ตั้งสถานะ accepted ไม่ได้ถ้าไม่มีคนขับ (driver_id)",
+      "result": {
+        "columns": [
+          "status",
+          "driver_id"
+        ],
+        "rows": [
+          {
+            "status": "forming",
+            "driver_id": null
+          }
+        ]
+      }
+    },
+    {
+      "no": 7,
+      "title": "อัปเดตตำแหน่งคนขับ => updated_at อัปเดตให้อัตโนมัติ",
+      "sql": "update public.driver_locations\nset latitude = 19.0288, longitude = 99.8950\nwhere driver_id = '<driver>';",
+      "before": {
+        "columns": [
+          "latitude",
+          "longitude",
+          "updated_at"
+        ],
+        "rows": [
+          {
+            "latitude": 16,
+            "longitude": 100,
+            "updated_at": "2026-10-12T09:23:35.111Z"
+          }
+        ]
+      },
+      "result": {
+        "columns": [
+          "latitude",
+          "longitude",
+          "updated_at"
+        ],
+        "rows": [
+          {
+            "latitude": 19.0288,
+            "longitude": 99.895,
+            "updated_at": "2026-10-12T10:23:35.116Z"
+          }
+        ]
+      }
+    }
+  ],
+  "triggers": {
+    "columns": [
+      "table_name",
+      "trigger_name",
+      "action_timing",
+      "event_manipulation"
+    ],
+    "rows": [
+      {
+        "table_name": "driver_locations",
+        "trigger_name": "trg_driver_locations_touch",
+        "action_timing": "BEFORE",
+        "event_manipulation": "UPDATE"
+      },
+      {
+        "table_name": "ride_groups",
+        "trigger_name": "trg_ride_groups_driver_rules",
+        "action_timing": "BEFORE",
+        "event_manipulation": "UPDATE"
+      },
+      {
+        "table_name": "ride_groups",
+        "trigger_name": "trg_ride_groups_status_timestamps",
+        "action_timing": "BEFORE",
+        "event_manipulation": "UPDATE"
+      }
+    ]
+  }
+}

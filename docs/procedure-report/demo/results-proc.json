@@ -1,0 +1,249 @@
+{
+  "db": "PostgreSQL 16 (PGlite / WASM)",
+  "steps": [
+    {
+      "no": 1,
+      "title": "สถานะเริ่มต้นของกลุ่มทั้งหมด (ก่อนเรียก procedure)",
+      "sql": "select left(id::text, 8) as group_id, status, driver_id, created_at\nfrom public.ride_groups order by id;",
+      "result": {
+        "columns": [
+          "group_id",
+          "status",
+          "has_driver",
+          "created_at"
+        ],
+        "rows": [
+          {
+            "group_id": "aaaaaaaa",
+            "status": "forming",
+            "has_driver": false,
+            "created_at": "2026-10-12T11:52:14.024Z"
+          },
+          {
+            "group_id": "bbbbbbbb",
+            "status": "forming",
+            "has_driver": false,
+            "created_at": "2026-10-12T11:52:14.024Z"
+          },
+          {
+            "group_id": "cccccccc",
+            "status": "forming",
+            "has_driver": false,
+            "created_at": "2026-10-12T11:52:14.024Z"
+          }
+        ]
+      },
+      "note": "ทุกกลุ่มยังไม่มีคนขับ (has_driver = false)"
+    },
+    {
+      "no": 2,
+      "title": "CALL sp_accept_ride_group(กลุ่ม A, คนขับ) — สำเร็จ",
+      "sql": "call public.sp_accept_ride_group(\n  'aaaaaaaa-0000-0000-0000-000000000001'::uuid,   -- กลุ่ม A\n  '11111111-1111-1111-1111-0000000000d1'::uuid     -- คนขับ\n);",
+      "result": {
+        "columns": [
+          "p_message"
+        ],
+        "rows": [
+          {
+            "p_message": "รับงานสำเร็จ: ผู้โดยสาร 3/4 คน"
+          }
+        ]
+      }
+    },
+    {
+      "no": 3,
+      "title": "ตรวจผลหลัง CALL — กลุ่ม A ถูกมอบหมายคนขับ + บันทึก event แล้ว",
+      "sql": "select left(id::text,8) as group_id, status, driver_id is not null as has_driver\nfrom public.ride_groups where id = 'aaaaaaaa-0000-0000-0000-000000000001';\n\nselect event, detail from public.ride_group_events where group_id = 'aaaaaaaa-0000-0000-0000-000000000001';",
+      "result": {
+        "columns": [
+          "group_id",
+          "status",
+          "has_driver"
+        ],
+        "rows": [
+          {
+            "group_id": "aaaaaaaa",
+            "status": "accepted",
+            "has_driver": true
+          }
+        ]
+      },
+      "result2": {
+        "columns": [
+          "event",
+          "detail"
+        ],
+        "rows": [
+          {
+            "event": "accepted",
+            "detail": "คนขับรับงาน: ผู้โดยสาร 3/4 คน"
+          }
+        ]
+      },
+      "note": "procedure ทำงานหลายคำสั่ง (ตรวจ + update + insert log) ในคําสั่งเดียว"
+    },
+    {
+      "no": 4,
+      "title": "CALL sp_accept_ride_group(กลุ่ม A ซ้ำ) — ถูกปฏิเสธ",
+      "sql": "call public.sp_accept_ride_group('aaaaaaaa-0000-0000-0000-000000000001'::uuid, '11111111-1111-1111-1111-0000000000d1'::uuid);",
+      "error": "กลุ่มสถานะ accepted รับงานไม่ได้",
+      "note": "กลุ่มสถานะ accepted แล้ว จึงรับงานซ้ำไม่ได้"
+    },
+    {
+      "no": 5,
+      "title": "CALL sp_accept_ride_group(กลุ่ม C, ผู้โดยสาร) — ถูกปฏิเสธ",
+      "sql": "call public.sp_accept_ride_group(\n  'cccccccc-0000-0000-0000-000000000001'::uuid,   -- กลุ่ม C\n  '11111111-1111-1111-1111-000000000003'::uuid     -- เป็นผู้โดยสาร ไม่ใช่คนขับ\n);",
+      "error": "ผู้ใช้ 11111111-1111-1111-1111-000000000003 ไม่ใช่คนขับ",
+      "note": "procedure ตรวจ role ของผู้ใช้ก่อนมอบหมายงาน"
+    },
+    {
+      "no": 6,
+      "title": "CALL sp_cancel_ride_group(กลุ่ม C) — ยกเลิกพร้อมระบุเหตุผล",
+      "sql": "call public.sp_cancel_ride_group(\n  'cccccccc-0000-0000-0000-000000000001'::uuid,              -- กลุ่ม C\n  '11111111-1111-1111-1111-000000000003'::uuid,               -- ผู้สั่งยกเลิก\n  'เปลี่ยนแผนการเดินทาง'         -- เหตุผล\n);",
+      "result": {
+        "columns": [
+          "p_message"
+        ],
+        "rows": [
+          {
+            "p_message": "ยกเลิกกลุ่มสำเร็จ (เปลี่ยนแผนการเดินทาง)"
+          }
+        ]
+      }
+    },
+    {
+      "no": 7,
+      "title": "ตรวจผลหลังยกเลิก — กลุ่ม C เป็น cancelled และมี event",
+      "sql": "select left(id::text,8) as group_id, status, driver_id\nfrom public.ride_groups where id = 'cccccccc-0000-0000-0000-000000000001';\n\nselect event, detail from public.ride_group_events where group_id = 'cccccccc-0000-0000-0000-000000000001';",
+      "result": {
+        "columns": [
+          "group_id",
+          "status",
+          "driver_id"
+        ],
+        "rows": [
+          {
+            "group_id": "cccccccc",
+            "status": "cancelled",
+            "driver_id": null
+          }
+        ]
+      },
+      "result2": {
+        "columns": [
+          "event",
+          "detail"
+        ],
+        "rows": [
+          {
+            "event": "cancelled",
+            "detail": "เปลี่ยนแผนการเดินทาง"
+          }
+        ]
+      }
+    },
+    {
+      "no": 8,
+      "title": "เตรียมทดสอบงานประจํา — ทําให้กลุ่ม B เก่ากว่า 1 ชั่วโมง",
+      "sql": "update public.ride_groups\n   set created_at = now() - interval '5 hours'\n where id = 'bbbbbbbb-0000-0000-0000-000000000001';",
+      "result": {
+        "columns": [
+          "group_id",
+          "status",
+          "created_at",
+          "age"
+        ],
+        "rows": [
+          {
+            "group_id": "bbbbbbbb",
+            "status": "forming",
+            "created_at": "2026-10-12T06:52:14.057Z",
+            "age": "05:00:00.001"
+          }
+        ]
+      },
+      "note": "จําลองกลุ่มที่ค้างรวมคนมานานเกินกําหนด"
+    },
+    {
+      "no": 9,
+      "title": "CALL sp_expire_stale_groups('1 hour') — งานประจําปิดกลุ่มที่ค้าง",
+      "sql": "call public.sp_expire_stale_groups('1 hour'::interval);",
+      "result": {
+        "columns": [
+          "p_expired"
+        ],
+        "rows": [
+          {
+            "p_expired": 1
+          }
+        ]
+      },
+      "note": "ค่าที่คืนผ่าน INOUT parameter = จำนวนกลุ่มที่ถูกปิด"
+    },
+    {
+      "no": 10,
+      "title": "ตรวจผล — กลุ่ม B ถูกปิดอัตโนมัติ + event log ทั้งหมด",
+      "sql": "select left(id::text,8) as group_id, status from public.ride_groups where id = 'bbbbbbbb-0000-0000-0000-000000000001';\n\nselect e.event, e.detail, left(e.group_id::text,8) as group_id\nfrom public.ride_group_events e order by e.id;",
+      "result": {
+        "columns": [
+          "group_id",
+          "status"
+        ],
+        "rows": [
+          {
+            "group_id": "bbbbbbbb",
+            "status": "cancelled"
+          }
+        ]
+      },
+      "result2": {
+        "columns": [
+          "event",
+          "detail",
+          "group_id"
+        ],
+        "rows": [
+          {
+            "event": "accepted",
+            "detail": "คนขับรับงาน: ผู้โดยสาร 3/4 คน",
+            "group_id": "aaaaaaaa"
+          },
+          {
+            "event": "cancelled",
+            "detail": "เปลี่ยนแผนการเดินทาง",
+            "group_id": "cccccccc"
+          },
+          {
+            "event": "expired",
+            "detail": "หมดเวลารวมคนอัตโนมัติ",
+            "group_id": "bbbbbbbb"
+          }
+        ]
+      }
+    }
+  ],
+  "procedures": {
+    "columns": [
+      "procedure_name",
+      "arguments",
+      "language"
+    ],
+    "rows": [
+      {
+        "procedure_name": "sp_accept_ride_group",
+        "arguments": "IN p_group_id uuid, IN p_driver_id uuid, INOUT p_message text DEFAULT ''::text",
+        "language": "plpgsql"
+      },
+      {
+        "procedure_name": "sp_cancel_ride_group",
+        "arguments": "IN p_group_id uuid, IN p_actor_id uuid, IN p_reason text, INOUT p_message text DEFAULT ''::text",
+        "language": "plpgsql"
+      },
+      {
+        "procedure_name": "sp_expire_stale_groups",
+        "arguments": "IN p_older_than interval, INOUT p_expired integer DEFAULT 0",
+        "language": "plpgsql"
+      }
+    ]
+  }
+}
