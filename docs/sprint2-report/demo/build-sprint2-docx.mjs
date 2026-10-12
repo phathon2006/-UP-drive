@@ -160,37 +160,41 @@ children.push(table(["รหัส", "งาน", "รายละเอีย�
 children.push(H("5. งานที่ส่งมอบ (Increment)", HeadingLevel.HEADING_2));
 children.push(P("Sprint 2 ส่งมอบงานฐานข้อมูล 3 กลุ่ม (รวม 9 วัตถุ) + การติดตาม Realtime + การ deploy จริง รายละเอียดดังนี้", { after: 100 }));
 
-children.push(H3("5.1 Database Trigger (3 ตัว)"));
+children.push(H3("5.1 โครงสร้างฐานข้อมูล (ER Diagram)"));
+children.push(P("แผนภาพความสัมพันธ์ระหว่างตาราง (Entity–Relationship Diagram) ของฐานข้อมูล 7 ตารางหลัก ได้แก่ profiles, ride_groups, ride_requests, ride_group_members, ride_routes, driver_locations และตารางบันทึกเหตุการณ์ ride_group_events โดยใช้สัญลักษณ์ Crow's Foot แสดงความสัมพันธ์แบบหนึ่ง-ต่อ-หลาย (1:N) และหนึ่ง-ต่อ-หนึ่ง (1:1)", { after: 100 }));
+children.push(...image("er-diagram.png", 2400, 2722, "ภาพที่ 3 — ER Diagram ของฐานข้อมูล UP Drive (7 ตารางหลัก + ตาราง audit log)"));
+
+children.push(H3("5.2 Database Trigger (3 ตัว)"));
 children.push(table(["#", "ชื่อ Trigger", "ตาราง", "Event / Timing", "หน้าที่"], [
   ["1", { t: "trg_ride_groups_status_timestamps", mono: true }, "ride_groups", "BEFORE UPDATE", "เติม confirmed_at / accepted_at / completed_at อัตโนมัติเมื่อสถานะเปลี่ยน"],
   ["2", { t: "trg_ride_groups_driver_rules", mono: true }, "ride_groups", "BEFORE UPDATE", "บล็อก (RAISE EXCEPTION) ถ้าตั้งสถานะ accepted แต่ยังไม่มีคนขับ"],
   ["3", { t: "trg_driver_locations_touch", mono: true }, "driver_locations", "BEFORE UPDATE", "อัปเดต updated_at ทุกครั้งที่พิกัดคนขับเปลี่ยน"],
 ]));
 
-children.push(H3("5.2 SQL Function (3 ตัว)"));
+children.push(H3("5.3 SQL Function (3 ตัว)"));
 children.push(table(["#", "ชื่อฟังก์ชัน", "ประเภท", "หน้าที่"], [
   ["1", { t: "haversine_km(lat1,lng1,lat2,lng2)", mono: true }, "Scalar", "คำนวณระยะทางระหว่างพิกัด 2 จุด (km) ด้วยสูตร Haversine"],
   ["2", { t: "group_passenger_total(group_id)", mono: true }, "Scalar", "นับจำนวนผู้โดยสารรวมของกลุ่ม (ผลรวม party_size)"],
   ["3", { t: "find_candidate_groups(...)", mono: true }, "Table", "หากลุ่มที่กำลังรวมคนซึ่งใกล้คำขอใหม่ คืนเป็นตารางพร้อมคะแนน (score)"],
 ]));
 
-children.push(H3("5.3 Stored Procedure (3 ตัว)"));
+children.push(H3("5.4 Stored Procedure (3 ตัว)"));
 children.push(table(["#", "ชื่อ Procedure", "หน้าที่"], [
   ["1", { t: "sp_accept_ride_group(group_id, driver_id)", mono: true }, "คนขับรับงาน: ตรวจเงื่อนไข → มอบหมายคนขับ → ตั้งสถานะ accepted → บันทึก event"],
   ["2", { t: "sp_cancel_ride_group(group_id, actor_id, reason)", mono: true }, "ยกเลิกกลุ่ม: ตั้งสถานะ cancelled → คืนคนขับ → บันทึก event"],
   ["3", { t: "sp_expire_stale_groups(older_than)", mono: true }, "งานประจำ: ปิดกลุ่มที่รวมคนเกินเวลาที่กำหนด แล้วบันทึก event (คืนจำนวนทาง INOUT)"],
 ]));
 
-children.push(H3("5.4 ตารางบันทึกเหตุการณ์ (ride_group_events)"));
+children.push(H3("5.5 ตารางบันทึกเหตุการณ์ (ride_group_events)"));
 children.push(P("ตารางใหม่ที่ใช้เก็บเหตุการณ์สำคัญของกลุ่มเดินทาง (accepted / cancelled / expired) โดยถูกเขียนอัตโนมัติจาก Stored Procedure ทำให้ตรวจสอบย้อนหลังได้ว่ากลุ่มหนึ่ง ๆ เกิดอะไรขึ้นเมื่อไร และใครเป็นผู้ทำ", { after: 100 }));
 
-children.push(H3("5.5 การติดตามตำแหน่งแบบ Realtime"));
+children.push(H3("5.6 การติดตามตำแหน่งแบบ Realtime"));
 children.push(P("คนขับส่งพิกัดปัจจุบันเข้าตาราง driver_locations และ Trigger จะอัปเดต updated_at ให้เอง ฝั่งผู้โดยสารติดตามการเปลี่ยนแปลงแบบ Realtime ผ่าน Supabase Realtime จึงเห็นตำแหน่งคนขับที่อัปเดตโดยไม่ต้องรีเฟรชหน้า", { after: 100 }));
 
-children.push(H3("5.6 Deploy ขึ้นออนไลน์ (Vercel)"));
+children.push(H3("5.7 Deploy ขึ้นออนไลน์ (Vercel)"));
 children.push(P("นำเว็บแอป (Node.js + Express) ขึ้นโฮสต์บน Vercel โดยตั้งค่า environment variables (SUPABASE_URL, SUPABASE_SECRET_KEY) และกำหนด region เป็น Singapore (sin1) เพื่อให้ตอบสนองเร็วในไทย ผลลัพธ์คือระบบออนไลน์จริงที่เข้าถึงได้จากทุกที่", { after: 100 }));
 
-children.push(H3("5.7 เอกสารและสื่อนำเสนอ"));
+children.push(H3("5.8 เอกสารและสื่อนำเสนอ"));
 children.push(bullet("รายงาน 3 ฉบับ: Database Trigger / SQL Function / Stored Procedure (พร้อมภาพผลการรันจริง)"));
 children.push(bullet("สไลด์นำเสนอโครงงาน (ปัญหา / ผู้ใช้ / ฟีเจอร์) ทั้งไฟล์ PowerPoint และ PDF"));
 children.push(bullet("คู่มือ README และไฟล์ SQL สำหรับสร้างฐานข้อมูล (supabase.sql, supabase.test.sql)"));
@@ -200,8 +204,8 @@ children.push(H("6. ผลการทดสอบ (หลักฐาน)", Hea
 children.push(P("ทุกหัวข้อทดสอบด้วย SQL ชุดเดียวกับที่ใช้บน Supabase บน PostgreSQL 16 (จำลองด้วย PGlite/WASM) และทดสอบระบบที่ deploy จริงบน Vercel", { italics: true, size: 19, color: "6B7688", after: 120 }));
 
 children.push(H3("6.1 Database Trigger"));
-children.push(...image("trigger-timestamps.png", 1200, 1779, "ภาพที่ 3 — Trigger เติมเวลา confirmed_at / accepted_at / completed_at อัตโนมัติตามสถานะ"));
-children.push(...image("trigger-guard.png", 1200, 824, "ภาพที่ 4 — ฐานข้อมูลปฏิเสธ (ERROR) เมื่อตั้งสถานะ accepted โดยไม่มีคนขับ"));
+children.push(...image("trigger-timestamps.png", 1200, 1779, "ภาพที่ 4 — Trigger เติมเวลา confirmed_at / accepted_at / completed_at อัตโนมัติตามสถานะ"));
+children.push(...image("trigger-guard.png", 1200, 824, "ภาพที่ 5 — ฐานข้อมูลปฏิเสธ (ERROR) เมื่อตั้งสถานะ accepted โดยไม่มีคนขับ"));
 children.push(table(["กรณีทดสอบ", "ผลลัพธ์ที่ได้", "ผล"], [
   ["เปลี่ยนสถานะ forming → sent_to_driver", "confirmed_at ถูกเติมอัตโนมัติ", { t: "ผ่าน", color: "166534", bold: true }],
   ["เปลี่ยนสถานะ → accepted / completed", "accepted_at / completed_at ถูกเติมอัตโนมัติ", { t: "ผ่าน", color: "166534", bold: true }],
@@ -211,8 +215,8 @@ children.push(table(["กรณีทดสอบ", "ผลลัพธ์ที
 ]));
 
 children.push(H3("6.2 SQL Function"));
-children.push(...image("func-scalar.png", 1920, 1684, "ภาพที่ 5 — ผลของ haversine_km() และ group_passenger_total()"));
-children.push(...image("func-candidates.png", 1920, 1704, "ภาพที่ 6 — ผลของ find_candidate_groups() เรียงตามคะแนน และกรองกลุ่มที่ไกลเกินระยะ"));
+children.push(...image("func-scalar.png", 1920, 1684, "ภาพที่ 6 — ผลของ haversine_km() และ group_passenger_total()"));
+children.push(...image("func-candidates.png", 1920, 1704, "ภาพที่ 7 — ผลของ find_candidate_groups() เรียงตามคะแนน และกรองกลุ่มที่ไกลเกินระยะ"));
 children.push(table(["กรณีทดสอบ", "ผลลัพธ์ที่ได้", "ผล"], [
   ["haversine_km() กับพิกัดที่ทราบค่า", "ได้ 0.107 / 0.383 / 4.965 km ตรงตามพิกัด", { t: "ผ่าน", color: "166534", bold: true }],
   ["group_passenger_total()", "กลุ่ม A = 3 (party_size), กลุ่มว่าง = 0", { t: "ผ่าน", color: "166534", bold: true }],
@@ -221,8 +225,8 @@ children.push(table(["กรณีทดสอบ", "ผลลัพธ์ที
 ]));
 
 children.push(H3("6.3 Stored Procedure"));
-children.push(...image("proc-accept.png", 1920, 1792, "ภาพที่ 7 — CALL sp_accept_ride_group() แล้วข้อมูลถูกต้อง"));
-children.push(...image("proc-events.png", 1920, 1308, "ภาพที่ 8 — event log บันทึกเหตุการณ์อัตโนมัติครบถ้วน"));
+children.push(...image("proc-accept.png", 1920, 1792, "ภาพที่ 8 — CALL sp_accept_ride_group() แล้วข้อมูลถูกต้อง"));
+children.push(...image("proc-events.png", 1920, 1308, "ภาพที่ 9 — event log บันทึกเหตุการณ์อัตโนมัติครบถ้วน"));
 children.push(table(["กรณีทดสอบ", "ผลลัพธ์ที่ได้", "ผล"], [
   ["คนขับรับงาน (ปกติ)", "สถานะ = accepted, มีคนขับ, มี event accepted", { t: "ผ่าน", color: "166534", bold: true }],
   ["รับงานซ้ำ", "ถูกปฏิเสธ: กลุ่มสถานะ accepted รับงานไม่ได้", { t: "ผ่าน", color: "166534", bold: true }],
@@ -232,7 +236,7 @@ children.push(table(["กรณีทดสอบ", "ผลลัพธ์ที
 ]));
 
 children.push(H3("6.4 การ Deploy จริง (Production)"));
-children.push(...image("deploy-health.png", 2000, 998, "ภาพที่ 9 — ตรวจสอบเซิร์ฟเวอร์ที่ deploy จริง: /api/health ตอบ ok และหน้าเว็บหลักโหลดได้ (HTTP 200)"));
+children.push(...image("deploy-health.png", 2000, 998, "ภาพที่ 10 — ตรวจสอบเซิร์ฟเวอร์ที่ deploy จริง: /api/health ตอบ ok และหน้าเว็บหลักโหลดได้ (HTTP 200)"));
 children.push(table(["รายการตรวจสอบ", "ผลลัพธ์", "ผล"], [
   ["GET /api/health", { t: "{\"ok\":true,\"message\":\"UP-Drive server is running\"}", mono: true }, { t: "ผ่าน", color: "166534", bold: true }],
   ["GET / (หน้าเว็บหลัก)", "HTTP 200", { t: "ผ่าน", color: "166534", bold: true }],

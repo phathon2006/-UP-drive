@@ -84,7 +84,13 @@
 
 ## 5. งานที่ส่งมอบ (Increment)
 
-### 5.1 Database Trigger (3 ตัว)
+### 5.1 โครงสร้างฐานข้อมูล (ER Diagram)
+
+แผนภาพความสัมพันธ์ระหว่างตาราง (Entity–Relationship Diagram) ของฐานข้อมูล 7 ตารางหลัก ได้แก่ `profiles`, `ride_groups`, `ride_requests`, `ride_group_members`, `ride_routes`, `driver_locations` และตารางบันทึกเหตุการณ์ `ride_group_events` โดยใช้สัญลักษณ์ Crow's Foot แสดงความสัมพันธ์แบบหนึ่ง-ต่อ-หลาย (1:N) และหนึ่ง-ต่อ-หนึ่ง (1:1)
+
+![ER Diagram](screenshots/er-diagram.png)
+
+### 5.2 Database Trigger (3 ตัว)
 
 | # | ชื่อ Trigger | ตาราง | Event / Timing | หน้าที่ |
 | --- | --- | --- | --- | --- |
@@ -92,7 +98,7 @@
 | 2 | `trg_ride_groups_driver_rules` | `ride_groups` | BEFORE UPDATE | บล็อก (RAISE EXCEPTION) ถ้าตั้งสถานะ `accepted` แต่ยังไม่มีคนขับ |
 | 3 | `trg_driver_locations_touch` | `driver_locations` | BEFORE UPDATE | อัปเดต `updated_at` ทุกครั้งที่พิกัดคนขับเปลี่ยน |
 
-### 5.2 SQL Function (3 ตัว)
+### 5.3 SQL Function (3 ตัว)
 
 | # | ชื่อฟังก์ชัน | ประเภท | หน้าที่ |
 | --- | --- | --- | --- |
@@ -100,7 +106,7 @@
 | 2 | `group_passenger_total(group_id)` | Scalar | นับจำนวนผู้โดยสารรวมของกลุ่ม (ผลรวม `party_size`) |
 | 3 | `find_candidate_groups(...)` | Table | หากลุ่มที่กำลังรวมคนซึ่งใกล้คำขอใหม่ คืนเป็นตารางพร้อมคะแนน (`score`) |
 
-### 5.3 Stored Procedure (3 ตัว)
+### 5.4 Stored Procedure (3 ตัว)
 
 | # | ชื่อ Procedure | หน้าที่ |
 | --- | --- | --- |
@@ -108,19 +114,19 @@
 | 2 | `sp_cancel_ride_group(group_id, actor_id, reason)` | ยกเลิกกลุ่ม: ตั้งสถานะ cancelled → คืนคนขับ → บันทึก event |
 | 3 | `sp_expire_stale_groups(older_than)` | งานประจำ: ปิดกลุ่มที่รวมคนเกินเวลาที่กำหนด แล้วบันทึก event (คืนจำนวนทาง INOUT) |
 
-### 5.4 ตารางบันทึกเหตุการณ์ (`ride_group_events`)
+### 5.5 ตารางบันทึกเหตุการณ์ (`ride_group_events`)
 
 ตารางใหม่ที่ใช้เก็บเหตุการณ์สำคัญของกลุ่มเดินทาง (accepted / cancelled / expired) โดยถูกเขียนอัตโนมัติจาก Stored Procedure ทำให้ตรวจสอบย้อนหลังได้ว่ากลุ่มหนึ่ง ๆ เกิดอะไรขึ้นเมื่อไร และใครเป็นผู้ทำ
 
-### 5.5 การติดตามตำแหน่งแบบ Realtime
+### 5.6 การติดตามตำแหน่งแบบ Realtime
 
 คนขับส่งพิกัดปัจจุบันเข้าตาราง `driver_locations` และ Trigger จะอัปเดต `updated_at` ให้เอง ฝั่งผู้โดยสารติดตามการเปลี่ยนแปลงแบบ Realtime ผ่าน Supabase Realtime จึงเห็นตำแหน่งคนขับที่อัปเดตโดยไม่ต้องรีเฟรชหน้า
 
-### 5.6 Deploy ขึ้นออนไลน์ (Vercel)
+### 5.7 Deploy ขึ้นออนไลน์ (Vercel)
 
 นำเว็บแอป (Node.js + Express) ขึ้นโฮสต์บน Vercel โดยตั้งค่า environment variables (`SUPABASE_URL`, `SUPABASE_SECRET_KEY`) และกำหนด region เป็น Singapore (sin1) เพื่อให้ตอบสนองเร็วในไทย ผลลัพธ์คือระบบออนไลน์จริงที่เข้าถึงได้จากทุกที่
 
-### 5.7 เอกสารและสื่อนำเสนอ
+### 5.8 เอกสารและสื่อนำเสนอ
 
 - รายงาน 3 ฉบับ: Database Trigger / SQL Function / Stored Procedure
 - สไลด์นำเสนอโครงงาน (ปัญหา / ผู้ใช้ / ฟีเจอร์) ทั้งไฟล์ PowerPoint และ PDF
@@ -288,6 +294,6 @@
 | --- | --- |
 | `report.docx` | **ไฟล์ Word พร้อมรูป — อัปโหลดเข้า Google Drive แล้วเปิดเป็น Google Doc ได้เลย** |
 | `report.md` | รายงานฉบับนี้ (Markdown) |
-| `screenshots/` | ภาพประกอบทั้ง 9 ภาพ |
-| `fig*.html` | หน้าเว็บต้นทางของภาพ burndown / board / deploy |
+| `screenshots/` | ภาพประกอบทั้ง 10 ภาพ |
+| `fig*.html` | หน้าเว็บต้นทางของภาพ burndown / board / deploy / ER Diagram |
 | `demo/` | สคริปต์ที่ใช้สร้างไฟล์ Word |
