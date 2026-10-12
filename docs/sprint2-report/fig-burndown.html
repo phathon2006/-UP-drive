@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+.page { width:1120px; background:#f5f7fb; font-family:"Noto Sans Thai","Tahoma",sans-serif; color:#1f2937; padding-bottom:26px; }
+.bar { height:12px; background:#5b21b6; }
+.wrap { padding:24px 30px 0; }
+h2 { font-size:28px; color:#401681; }
+.sub { color:#6b7280; font-size:15px; margin-top:6px; }
+.legend { display:flex; gap:24px; margin:16px 0 6px; font-size:14px; color:#334155; }
+.dot { display:inline-block; width:13px; height:13px; border-radius:3px; margin-right:7px; vertical-align:middle; }
+.box { background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 8px 22px rgba(0,0,0,.05); padding:6px; }
+text { font-family:"Noto Sans Thai","Tahoma",sans-serif; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bar"></div>
+  <div class="wrap">
+    <h2>Burndown Chart — Sprint 2</h2>
+    <div class="sub">งานคงเหลือ (story points) ตลอด 10 วันทำการ · Sprint Goal: ย้ายกติกาหลักเข้าฐานข้อมูล + เตรียมพร้อมใช้งานจริง</div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#94a3b8"></span>เส้นอุดมคติ (Ideal)</span>
+      <span><span class="dot" style="background:#5b21b6"></span>งานคงเหลือจริง (Actual)</span>
+      <span style="color:#166534">■ สิ้นสุด Sprint: เหลือ 0 points</span>
+    </div>
+
+    <div class="box">
+    <svg width="1050" height="500" viewBox="0 0 1120 540">
+      <!-- gridlines Y -->
+      <line x1="90" y1="50"  x2="1080" y2="50"  stroke="#eef2f7" stroke-width="1"/>
+      <line x1="90" y1="155" x2="1080" y2="155" stroke="#eef2f7" stroke-width="1"/>
+      <line x1="90" y1="260" x2="1080" y2="260" stroke="#eef2f7" stroke-width="1"/>
+      <line x1="90" y1="365" x2="1080" y2="365" stroke="#eef2f7" stroke-width="1"/>
+      <line x1="90" y1="470" x2="1080" y2="470" stroke="#cbd5e1" stroke-width="1.5"/>
+      <!-- gridlines X -->
+      <line x1="189" y1="50" x2="189" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+      <line x1="288" y1="50" x2="288" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+      <line x1="387" y1="50" x2="387" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+      <line x1="486" y1="50" x2="486" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+      <line x1="585" y1="50" x2="585" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+      <line x1="684" y1="50" x2="684" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+      <line x1="783" y1="50" x2="783" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+      <line x1="882" y1="50" x2="882" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+      <line x1="981" y1="50" x2="981" y2="470" stroke="#f1f5f9" stroke-width="1"/>
+
+      <!-- Y axis labels -->
+      <text x="76" y="56"  font-size="15" fill="#64748b" text-anchor="end">40</text>
+      <text x="76" y="161" font-size="15" fill="#64748b" text-anchor="end">30</text>
+      <text x="76" y="266" font-size="15" fill="#64748b" text-anchor="end">20</text>
+      <text x="76" y="371" font-size="15" fill="#64748b" text-anchor="end">10</text>
+      <text x="76" y="476" font-size="15" fill="#64748b" text-anchor="end">0</text>
+      <text x="30" y="270" font-size="14" fill="#475569" text-anchor="middle" transform="rotate(-90 30 270)">งานคงเหลือ (points)</text>
+
+      <!-- X axis labels -->
+      <text x="90"  y="498" font-size="14" fill="#64748b" text-anchor="middle">เริ่ม</text>
+      <text x="189" y="498" font-size="14" fill="#64748b" text-anchor="middle">วันที่ 1</text>
+      <text x="288" y="498" font-size="14" fill="#64748b" text-anchor="middle">2</text>
+      <text x="387" y="498" font-size="14" fill="#64748b" text-anchor="middle">3</text>
+      <text x="486" y="498" font-size="14" fill="#64748b" text-anchor="middle">4</text>
+      <text x="585" y="498" font-size="14" fill="#64748b" text-anchor="middle">5</text>
+      <text x="684" y="498" font-size="14" fill="#64748b" text-anchor="middle">6</text>
+      <text x="783" y="498" font-size="14" fill="#64748b" text-anchor="middle">7</text>
+      <text x="882" y="498" font-size="14" fill="#64748b" text-anchor="middle">8</text>
+      <text x="981" y="498" font-size="14" fill="#64748b" text-anchor="middle">9</text>
+      <text x="1080" y="498" font-size="14" fill="#64748b" text-anchor="middle">วันที่ 10</text>
+      <text x="585" y="528" font-size="14" fill="#475569" text-anchor="middle">วันทำการ</text>
+
+      <!-- Ideal line -->
+      <line x1="90" y1="50" x2="1080" y2="470" stroke="#94a3b8" stroke-width="3" stroke-dasharray="9 8"/>
+
+      <!-- Actual line -->
+      <polyline fill="none" stroke="#5b21b6" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"
+        points="90,50 189,50 288,102 387,133.5 486,133.5 585,196.5 684,228 783,291 882,354 981,427.5 1080,470"/>
+
+      <!-- Actual markers -->
+      <circle cx="90"   cy="50"    r="6" fill="#5b21b6"/>
+      <circle cx="189"  cy="50"    r="6" fill="#5b21b6"/>
+      <circle cx="288"  cy="102"   r="6" fill="#5b21b6"/>
+      <circle cx="387"  cy="133.5" r="6" fill="#5b21b6"/>
+      <circle cx="486"  cy="133.5" r="6" fill="#5b21b6"/>
+      <circle cx="585"  cy="196.5" r="6" fill="#5b21b6"/>
+      <circle cx="684"  cy="228"   r="6" fill="#5b21b6"/>
+      <circle cx="783"  cy="291"   r="6" fill="#5b21b6"/>
+      <circle cx="882"  cy="354"   r="6" fill="#5b21b6"/>
+      <circle cx="981"  cy="427.5" r="6" fill="#5b21b6"/>
+      <circle cx="1080" cy="470"   r="7" fill="#16a34a"/>
+
+      <!-- callouts -->
+      <text x="300" y="92"  font-size="13" fill="#5b21b6">เริ่มช้ากว่าอุดมคติ 2 วัน (ออกแบบ schema)</text>
+      <text x="1000" y="452" font-size="14" fill="#166534" font-weight="700" text-anchor="end">เหลือ 0 points ✓</text>
+    </svg>
+    </div>
+  </div>
+</div>
+</body>
+</html>

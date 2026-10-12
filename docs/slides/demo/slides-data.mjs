@@ -130,7 +130,7 @@ export const SLIDES = [
     kind: "cards",
     title: "เทคโนโลยีและฐานข้อมูล",
     emoji: "🧩",
-    note: "Trigger 3 · SQL Function 4 · Stored Procedure 3 · deploy แล้วบน Vercel",
+    note: "Trigger 3 · SQL Function 3 · Stored Procedure 3 · deploy แล้วบน Vercel",
     cards: [
       {
         icon: "🌐",

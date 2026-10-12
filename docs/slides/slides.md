@@ -72,7 +72,7 @@ https://up-drive.vercel.app
 **⚙️ Backend** — Node.js + Express, REST API, ตรวจสอบสิทธิ์ด้วย Supabase
 **🗄️ Database** — Supabase (PostgreSQL), 6 ตาราง + ride_group_events, Auth + Realtime
 
-Trigger 3 · SQL Function 4 · Stored Procedure 3 · deploy แล้วบน Vercel
+Trigger 3 · SQL Function 3 · Stored Procedure 3 · deploy แล้วบน Vercel
 
 ## สไลด์ 8 — สรุปและจุดเด่น
 - ✓ **ลดค่าใช้จ่าย** — แชร์ค่ารถร่วมกันต่อเที่ยว

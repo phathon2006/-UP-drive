@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+.page { width:1000px; background:#f5f7fb; font-family:"Noto Sans Thai","Tahoma",sans-serif; color:#1f2937; padding-bottom:30px; }
+.bar { height:12px; background:#5b21b6; }
+.wrap { padding:26px 34px 0; }
+h2 { font-size:28px; color:#401681; }
+.sub { color:#6b7280; font-size:15px; margin-top:6px; }
+.term { margin-top:20px; background:#0f172a; border-radius:14px; padding:20px 22px; box-shadow:0 10px 26px rgba(2,6,23,.28); }
+.term .line { font-family:Consolas,"Courier New",monospace; font-size:15.5px; line-height:1.8; color:#e2e8f0; white-space:pre-wrap; }
+.cmd { color:#7ee787; }
+.json { color:#fde68a; }
+.ok { color:#7ee787; font-weight:700; }
+.dim { color:#94a3b8; }
+.cards { display:flex; gap:18px; margin-top:22px; }
+.card { flex:1; background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:16px 18px; box-shadow:0 6px 16px rgba(0,0,0,.04); }
+.card .k { font-size:13px; color:#6b7280; }
+.card .v { font-size:16px; font-weight:800; color:#1f2937; margin-top:7px; word-break:break-all; }
+.card.good { border-color:#86efac; background:#f0fdf4; }
+.card.good .v { color:#166534; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bar"></div>
+  <div class="wrap">
+    <h2>ตรวจสอบการ Deploy จริง (Production)</h2>
+    <div class="sub">ยิงคำขอไปยังเซิร์ฟเวอร์ที่ deploy บน Vercel เพื่อยืนยันว่าระบบออนไลน์และเชื่อมต่อฐานข้อมูลได้</div>
+
+    <div class="term">
+      <div class="line"><span class="cmd">$ curl -s https://up-drive.vercel.app/api/health</span></div>
+      <div class="line"><span class="json">{"ok":true,"message":"UP-Drive server is running"}</span></div>
+      <div class="line">&nbsp;</div>
+      <div class="line"><span class="cmd">$ curl -s -o /dev/null -w "%{http_code}" https://up-drive.vercel.app/</span></div>
+      <div class="line"><span class="ok">200</span>  <span class="dim">// หน้าเว็บหลักโหลดได้ปกติ</span></div>
+      <div class="line">&nbsp;</div>
+      <div class="line"><span class="dim">HTTP/2 200 · Server: Vercel · X-Vercel-Id: sin1::sin1</span></div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="k">Production URL</div><div class="v">up-drive.vercel.app</div></div>
+      <div class="card"><div class="k">Region</div><div class="v">Singapore (sin1)</div></div>
+      <div class="card"><div class="k">ฐานข้อมูล</div><div class="v">Supabase (PostgreSQL)</div></div>
+      <div class="card good"><div class="k">สถานะ</div><div class="v">✓ ออนไลน์</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
