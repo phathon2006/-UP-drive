@@ -90,6 +90,79 @@
 
 ![ER Diagram](screenshots/er-diagram.png)
 
+**ตารางสรุปโครงสร้างฐานข้อมูล (Schema Summary)**
+
+| ตาราง | หน้าที่ | คีย์หลัก | คีย์นอก (อ้างอิง) | คอลัมน์ |
+| --- | --- | --- | --- | --- |
+| `profiles` | ข้อมูลบัญชีผู้ใช้ (ผู้โดยสาร/คนขับ) ผูกกับระบบล็อกอิน | `id` | — (อ้าง `auth.users`) | 6 |
+| `ride_groups` | กลุ่มเดินทาง ตั้งแต่เริ่มรวมคนจนจบงาน | `id` | `leader_id`, `driver_id` → `profiles` | 9 |
+| `ride_requests` | คำขอเดินทางของผู้โดยสารหนึ่งคน พร้อมพิกัดต้นทาง–ปลายทาง | `id` | `passenger_id` → `profiles`, `group_id` → `ride_groups` | 14 |
+| `ride_group_members` | สมาชิกในกลุ่ม (เชื่อม กลุ่ม ↔ คำขอ ↔ ผู้โดยสาร) | `id` | `group_id` → `ride_groups`, `ride_request_id` → `ride_requests`, `passenger_id` → `profiles` | 7 |
+| `ride_routes` | เส้นทาง/ระยะทางของกลุ่ม (1 กลุ่ม : 1 เส้นทาง) | `id` | `group_id` → `ride_groups` (UNIQUE) | 6 |
+| `driver_locations` | พิกัดล่าสุดของคนขับ สำหรับติดตามแบบ Realtime | `id` | `driver_id` → `profiles` (UNIQUE) | 8 |
+| `ride_group_events` | บันทึกเหตุการณ์ของกลุ่ม (audit log) | `id` | `group_id` → `ride_groups`, `actor_id` → `profiles` | 6 |
+
+**รายละเอียดคอลัมน์ทั้งหมด (Data Dictionary)**
+
+| ตาราง | คอลัมน์ | ชนิดข้อมูล | คีย์ / ข้อกำหนด |
+| --- | --- | --- | --- |
+| `profiles` | `id` | uuid | PK · อ้าง `auth.users(id)` |
+| | `name` | text | NOT NULL |
+| | `phone` | text | — |
+| | `role` | text | NOT NULL · CHECK (passenger, driver) |
+| | `vehicle_seats` | integer | NOT NULL · DEFAULT 4 · CHECK 1–10 |
+| | `created_at` | timestamptz | NOT NULL · DEFAULT now() |
+| `ride_groups` | `id` | uuid | PK · DEFAULT gen_random_uuid() |
+| | `leader_id` | uuid | FK → `profiles(id)` · NOT NULL |
+| | `target_passengers` | integer | NOT NULL · CHECK 1–10 |
+| | `status` | text | NOT NULL · DEFAULT 'forming' · CHECK (forming, sent_to_driver, accepted, completed, cancelled) |
+| | `driver_id` | uuid | FK → `profiles(id)` · เป็น NULL ได้ |
+| | `created_at` | timestamptz | NOT NULL · DEFAULT now() |
+| | `confirmed_at` | timestamptz | เติมอัตโนมัติโดย Trigger |
+| | `accepted_at` | timestamptz | เติมอัตโนมัติโดย Trigger |
+| | `completed_at` | timestamptz | เติมอัตโนมัติโดย Trigger |
+| `ride_requests` | `id` | uuid | PK · DEFAULT gen_random_uuid() |
+| | `passenger_id` | uuid | FK → `profiles(id)` · NOT NULL |
+| | `group_id` | uuid | FK → `ride_groups(id)` · ON DELETE SET NULL |
+| | `origin_text` | text | NOT NULL |
+| | `destination_text` | text | NOT NULL |
+| | `origin_detail` | text | — |
+| | `destination_detail` | text | — |
+| | `origin_lat` | double precision | NOT NULL |
+| | `origin_lng` | double precision | NOT NULL |
+| | `destination_lat` | double precision | NOT NULL |
+| | `destination_lng` | double precision | NOT NULL |
+| | `target_passengers` | integer | NOT NULL · CHECK 1–10 |
+| | `status` | text | NOT NULL · DEFAULT 'searching' · CHECK (searching, matched, sent_to_driver, accepted, completed, cancelled) |
+| | `created_at` | timestamptz | NOT NULL · DEFAULT now() |
+| `ride_group_members` | `id` | uuid | PK · DEFAULT gen_random_uuid() |
+| | `group_id` | uuid | FK → `ride_groups(id)` · NOT NULL · ON DELETE CASCADE · UNIQUE(group_id, passenger_id), UNIQUE(group_id, ride_request_id) |
+| | `ride_request_id` | uuid | FK → `ride_requests(id)` · NOT NULL · ON DELETE CASCADE |
+| | `passenger_id` | uuid | FK → `profiles(id)` · NOT NULL · ON DELETE CASCADE |
+| | `party_size` | integer | NOT NULL · DEFAULT 1 · CHECK 1–10 |
+| | `confirmed` | boolean | NOT NULL · DEFAULT false |
+| | `joined_at` | timestamptz | NOT NULL · DEFAULT now() |
+| `ride_routes` | `id` | uuid | PK · DEFAULT gen_random_uuid() |
+| | `group_id` | uuid | FK → `ride_groups(id)` · NOT NULL · UNIQUE · ON DELETE CASCADE |
+| | `distance_meters` | double precision | — |
+| | `duration_seconds` | double precision | — |
+| | `geometry` | jsonb | — |
+| | `created_at` | timestamptz | NOT NULL · DEFAULT now() |
+| `driver_locations` | `id` | uuid | PK · DEFAULT gen_random_uuid() |
+| | `driver_id` | uuid | FK → `profiles(id)` · NOT NULL · UNIQUE · ON DELETE CASCADE |
+| | `latitude` | double precision | NOT NULL |
+| | `longitude` | double precision | NOT NULL |
+| | `heading` | double precision | — |
+| | `speed` | double precision | — |
+| | `accuracy` | double precision | — |
+| | `updated_at` | timestamptz | NOT NULL · DEFAULT now() · อัปเดตโดย Trigger |
+| `ride_group_events` | `id` | bigserial | PK (running number) |
+| | `group_id` | uuid | FK → `ride_groups(id)` · NOT NULL · ON DELETE CASCADE |
+| | `actor_id` | uuid | FK → `profiles(id)` · เป็น NULL ได้ |
+| | `event` | text | NOT NULL |
+| | `detail` | text | — |
+| | `created_at` | timestamptz | NOT NULL · DEFAULT now() |
+
 ### 5.2 Database Trigger (3 ตัว)
 
 | # | ชื่อ Trigger | ตาราง | Event / Timing | หน้าที่ |
