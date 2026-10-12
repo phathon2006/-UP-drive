@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>UP Drive — สไลด์</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.page {
+  position: relative;
+  width: 1280px; height: 720px;
+  background: #F5F7FB;
+  font-family: "Noto Sans Thai", "Tahoma", "Segoe UI", sans-serif;
+  color: #1F2937;
+  overflow: hidden;
+}
+.bar { position:absolute; top:0; left:0; right:0; height:16px; background:#5B21B6; }
+.bar.accent { background: var(--accent); }
+.hdr { position:absolute; top:42px; left:54px; right:54px; }
+.hdr h2 { font-size:44px; color:#401681; font-weight:800; letter-spacing:.2px; }
+.underline { width:130px; height:7px; border-radius:4px; background:#F59E0B; margin-top:12px; }
+.foot { position:absolute; left:54px; right:54px; bottom:20px; display:flex; justify-content:space-between; font-size:14px; color:#6B7280; }
+
+/* title slide */
+.title-slide { background: linear-gradient(135deg, #5B21B6, #7C3AED); color:#fff; }
+.title-slide .eyebrow { position:absolute; top:74px; left:54px; background:#F59E0B; color:#3F2A00; font-weight:800; font-size:15px; padding:9px 20px; border-radius:999px; }
+.title-slide h1 { position:absolute; top:150px; left:54px; font-size:96px; font-weight:900; letter-spacing:1px; }
+.title-slide .sub { position:absolute; top:300px; left:56px; font-size:27px; color:#EDE9FE; max-width:900px; line-height:1.4; }
+.title-slide .tags { position:absolute; top:400px; left:56px; font-size:21px; color:#FDE68A; letter-spacing:.5px; }
+.title-slide .url { position:absolute; left:56px; bottom:52px; font-size:19px; font-weight:800; }
+.title-slide .band { position:absolute; left:0; right:0; bottom:0; height:62px; background:rgba(64,22,129,.85); }
+
+/* bullets */
+.rows { position:absolute; top:150px; left:54px; right:54px; }
+.row { display:flex; align-items:center; gap:16px; background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:12px 18px; margin-bottom:12px; box-shadow:0 6px 18px rgba(0,0,0,.04); }
+.row .num { flex:0 0 auto; width:38px; height:38px; border-radius:10px; background:#EDE9FE; color:#5B21B6; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:17px; }
+.row .txt { font-size:20px; line-height:1.35; }
+
+/* cards */
+.cards { position:absolute; top:158px; left:54px; right:54px; display:flex; gap:26px; }
+.card { flex:1; background:#fff; border:1px solid #E5E7EB; border-radius:18px; padding:0 0 20px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,.05); display:flex; flex-direction:column; }
+.card .top { height:9px; background:#5B21B6; }
+.card .icon { text-align:center; font-size:44px; margin:18px 0 6px; }
+.card h3 { text-align:center; font-size:22px; color:#401681; margin:6px 14px 16px; }
+.card ul { list-style:none; padding:0 22px; }
+.card li { font-size:16px; line-height:1.4; margin-bottom:9px; padding-left:20px; position:relative; }
+.card li:before { content:"•"; color:#5B21B6; position:absolute; left:4px; font-weight:900; }
+.note { position:absolute; left:54px; right:54px; bottom:56px; text-align:center; font-size:16px; font-style:italic; color:#6B7280; }
+
+/* steps */
+.steps { position:absolute; top:165px; left:54px; right:54px; display:flex; flex-wrap:wrap; gap:22px 22px; }
+.step { width:calc((100% - 66px)/4); background:#fff; border:1px solid #E5E7EB; border-radius:16px; padding:16px; display:flex; align-items:center; gap:14px; box-shadow:0 6px 18px rgba(0,0,0,.04); }
+.step .n { flex:0 0 auto; width:42px; height:42px; border-radius:12px; background:#5B21B6; color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.step .t { font-size:17px; font-weight:700; line-height:1.25; }
+
+/* summary */
+.sums { position:absolute; top:200px; left:54px; right:54px; display:flex; gap:26px; }
+.sum { flex:1; background:#fff; border:1px solid #E5E7EB; border-radius:18px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,.05); padding-bottom:22px; }
+.sum .top { height:9px; background:#16A34A; }
+.sum .chk { text-align:center; font-size:44px; color:#16A34A; font-weight:900; margin:22px 0 8px; }
+.sum h3 { text-align:center; font-size:21px; color:#401681; margin:6px 14px 10px; }
+.sum p { text-align:center; font-size:17px; color:#1F2937; padding:0 22px; line-height:1.4; }
+.finalurl { position:absolute; left:54px; right:54px; bottom:58px; text-align:center; font-size:21px; font-weight:800; color:#5B21B6; }
+
+  body { background:#111827; padding:40px 0; display:flex; flex-direction:column; align-items:center; gap:34px; }
+  .page { box-shadow:0 20px 50px rgba(0,0,0,.5); }
+  @media print {
+    body { background:#fff; padding:0; gap:0; }
+    .page { box-shadow:none; page-break-after:always; }
+    @page { size: 1280px 720px; margin:0; }
+  }
+</style>
+</head><body><div class="page title-slide">
+      <div class="eyebrow">โครงงานระบบสารสนเทศ</div>
+      <h1>UP Drive</h1>
+      <div class="sub">ระบบแชร์ค่าเดินทางสำหรับนักศึกษา มหาวิทยาลัยพะเยา</div>
+      <div class="tags">📍 GPS   🗺️ แผนที่   🚗 Driver   ⚡ Realtime</div>
+      <div class="band"></div>
+      <div class="url">https://up-drive.vercel.app</div>
+    </div>
+<div class="page">
+    <div class="bar accent" style="--accent:#DC2626"></div>
+    <div class="hdr"><h2>😣 ปัญหาที่พบ</h2><div class="underline"></div></div><div class="rows"><div class="row"><div class="num">1</div><div class="txt">นักศึกษาเดินทางเข้า–ออกมหาวิทยาลัย/หอพักทุกวัน ถ้าไปคนเดียวค่าเดินทางสูง</div></div><div class="row"><div class="num">2</div><div class="txt">หาคนร่วมทางยาก ต้องนัดกันเองผ่าน LINE/Facebook ไม่มีระบบช่วยจับคู่</div></div><div class="row"><div class="num">3</div><div class="txt">ไม่มีข้อมูลพิกัดและเส้นทาง ทำให้นัดรับ–ส่งคลาดเคลื่อน เสียเวลา</div></div><div class="row"><div class="num">4</div><div class="txt">คนขับไม่มีช่องทางรับงานอย่างเป็นระบบ มองไม่เห็นงานที่รออยู่</div></div><div class="row"><div class="num">5</div><div class="txt">รถวิ่งไม่เต็มคัน → ต้นทุนต่อคนสูง จราจรและมลพิษเพิ่มขึ้น</div></div></div>
+    <div class="foot"><span>UP Drive · ระบบแชร์ค่าเดินทางสำหรับนักศึกษา มหาวิทยาลัยพะเยา</span><span>2</span></div>
+  </div>
+<div class="page">
+    <div class="bar "></div>
+    <div class="hdr"><h2>👥 ผู้ใช้ระบบ</h2><div class="underline"></div></div><div class="cards"><div class="card"><div class="top"></div><div class="icon">👤</div><h3>ผู้โดยสาร (Passenger)</h3><ul><li>นักศึกษา ม.พะเยา ที่ต้องการเดินทาง</li><li>อยากแชร์ค่าคันรถให้ถูกลง</li><li>หาคนร่วมทางเส้นทางเดียวกัน</li><li>ปักหมุดจุดรับ–ส่งบนแผนที่</li></ul></div><div class="card"><div class="top"></div><div class="icon">🚗</div><h3>คนขับ (Driver)</h3><ul><li>นักศึกษาที่มีรถและว่างรับงาน</li><li>แชร์ค่าเชื้อเพลิง / มีรายได้เสริม</li><li>ดูงานว่างและกดรับงาน</li><li>ส่งตำแหน่ง GPS แบบ Realtime</li></ul></div><div class="card"><div class="top"></div><div class="icon">🛠️</div><h3>ผู้ดูแลระบบ (Admin)</h3><ul><li>จัดการฐานข้อมูลและความปลอดภัย</li><li>ดูแลโครงสร้างตาราง (schema)</li><li>Trigger / Function / Procedure</li></ul></div></div>
+    <div class="foot"><span>UP Drive · ระบบแชร์ค่าเดินทางสำหรับนักศึกษา มหาวิทยาลัยพะเยา</span><span>3</span></div>
+  </div>
+<div class="page">
+    <div class="bar "></div>
+    <div class="hdr"><h2>🔄 การทำงานของระบบ</h2><div class="underline"></div></div><div class="steps"><div class="step"><div class="n">1</div><div class="t">สมัคร / เข้าสู่ระบบ</div></div><div class="step"><div class="n">2</div><div class="t">ประกาศเส้นทาง + ปักหมุด</div></div><div class="step"><div class="n">3</div><div class="t">จับคู่กลุ่มอัตโนมัติ</div></div><div class="step"><div class="n">4</div><div class="t">ยืนยันสมาชิก</div></div><div class="step"><div class="n">5</div><div class="t">ส่งงานให้คนขับ</div></div><div class="step"><div class="n">6</div><div class="t">คนขับรับงาน</div></div><div class="step"><div class="n">7</div><div class="t">ติดตาม Realtime</div></div><div class="step"><div class="n">8</div><div class="t">เสร็จสิ้น + ประวัติ</div></div></div>
+    <div class="foot"><span>UP Drive · ระบบแชร์ค่าเดินทางสำหรับนักศึกษา มหาวิทยาลัยพะเยา</span><span>4</span></div>
+  </div>
+<div class="page">
+    <div class="bar "></div>
+    <div class="hdr"><h2>✨ ฟีเจอร์ — ผู้โดยสาร</h2><div class="underline"></div></div><div class="rows"><div class="row"><div class="num">1</div><div class="txt">สมัคร/เข้าสู่ระบบด้วย Supabase Auth แยกบทบาทผู้ใช้</div></div><div class="row"><div class="num">2</div><div class="txt">ประกาศความต้องการเดินทาง: ต้นทาง–ปลายทาง + รายละเอียด + ปักหมุด GPS</div></div><div class="row"><div class="num">3</div><div class="txt">กำหนดจำนวนผู้โดยสารเป้าหมายของกลุ่ม</div></div><div class="row"><div class="num">4</div><div class="txt">จับคู่กลุ่มอัตโนมัติ (find_candidate_groups) รวมคนที่ไปทางเดียวกัน</div></div><div class="row"><div class="num">5</div><div class="txt">จัดการกลุ่มเดินทาง: ดูสมาชิก / ยืนยัน / ยกเลิก</div></div><div class="row"><div class="num">6</div><div class="txt">แผนที่ + เส้นทางจริง (OSRM) พร้อมระยะทางและเวลา</div></div><div class="row"><div class="num">7</div><div class="txt">ติดตามสถานะแบบ Realtime และดูประวัติการเดินทาง</div></div></div>
+    <div class="foot"><span>UP Drive · ระบบแชร์ค่าเดินทางสำหรับนักศึกษา มหาวิทยาลัยพะเยา</span><span>5</span></div>
+  </div>
+<div class="page">
+    <div class="bar "></div>
+    <div class="hdr"><h2>✨ ฟีเจอร์ — คนขับ</h2><div class="underline"></div></div><div class="rows"><div class="row"><div class="num">1</div><div class="txt">Driver Dashboard แสดงงานที่รอรับ (jobs)</div></div><div class="row"><div class="num">2</div><div class="txt">ดูรายละเอียดงานและเส้นทางบนแผนที่ พร้อมจุดรับ–ส่ง</div></div><div class="row"><div class="num">3</div><div class="txt">กดรับงาน → สถานะเปลี่ยนเป็น accepted</div></div><div class="row"><div class="num">4</div><div class="txt">ส่งตำแหน่ง GPS แบบ Realtime (driver_locations)</div></div><div class="row"><div class="num">5</div><div class="txt">ดูประวัติงานที่เคยรับ</div></div></div>
+    <div class="foot"><span>UP Drive · ระบบแชร์ค่าเดินทางสำหรับนักศึกษา มหาวิทยาลัยพะเยา</span><span>6</span></div>
+  </div>
+<div class="page">
+    <div class="bar "></div>
+    <div class="hdr"><h2>🧩 เทคโนโลยีและฐานข้อมูล</h2><div class="underline"></div></div><div class="cards"><div class="card"><div class="top"></div><div class="icon">🌐</div><h3>Frontend</h3><ul><li>HTML / CSS / JavaScript</li><li>Leaflet (แผนที่)</li><li>Responsive ใช้บนมือถือ</li></ul></div><div class="card"><div class="top"></div><div class="icon">⚙️</div><h3>Backend</h3><ul><li>Node.js + Express</li><li>REST API</li><li>ตรวจสอบสิทธิ์ด้วย Supabase</li></ul></div><div class="card"><div class="top"></div><div class="icon">🗄️</div><h3>Database</h3><ul><li>Supabase (PostgreSQL)</li><li>6 ตาราง + ride_group_events</li><li>Auth + Realtime</li></ul></div></div><div class="note">Trigger 3 · SQL Function 4 · Stored Procedure 3 · deploy แล้วบน Vercel</div>
+    <div class="foot"><span>UP Drive · ระบบแชร์ค่าเดินทางสำหรับนักศึกษา มหาวิทยาลัยพะเยา</span><span>7</span></div>
+  </div>
+<div class="page">
+    <div class="bar "></div>
+    <div class="hdr"><h2>🎯 สรุปและจุดเด่น</h2><div class="underline"></div></div><div class="sums"><div class="sum"><div class="top"></div><div class="chk">✓</div><h3>ลดค่าใช้จ่าย</h3><p>แชร์ค่ารถร่วมกันต่อเที่ยว</p></div><div class="sum"><div class="top"></div><div class="chk">✓</div><h3>จับคู่อัตโนมัติ</h3><p>ไม่ต้องนัดกันเองเหมือนเดิม</p></div><div class="sum"><div class="top"></div><div class="chk">✓</div><h3>ใช้งานง่าย</h3><p>แผนที่ + GPS + Realtime</p></div><div class="sum"><div class="top"></div><div class="chk">✓</div><h3>พร้อมใช้งานจริง</h3><p>deploy แล้วบน Vercel</p></div></div><div class="finalurl">https://up-drive.vercel.app</div>
+    <div class="foot"><span>UP Drive · ระบบแชร์ค่าเดินทางสำหรับนักศึกษา มหาวิทยาลัยพะเยา</span><span>8</span></div>
+  </div></body></html>
