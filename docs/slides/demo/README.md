@@ -9,6 +9,7 @@
 | `build-pptx.mjs` | สร้าง `UP-Drive-Slides.pptx` (ใช้ไลบรารี `pptxgenjs`) |
 | `build-html.mjs` | สร้าง `slides.html` + ไฟล์แยก `html/slide-N.html` |
 | `shot.mjs` | แคปเจอร์สไลด์ HTML เป็น PNG ด้วย Chrome headless |
+| `mkpdf.mjs` | พิมพ์ `slides.html` เป็น PDF (Chrome headless CDP) |
 
 ## วิธีใช้
 ```bash
@@ -21,6 +22,9 @@ node build-pptx.mjs "../UP-Drive-Slides.pptx"
 
 # 3) แคปเจอร์ภาพ (ต้องมี pair JSON: [{file, out}])
 node shot.mjs "../screenshots" pairs.json
+
+# 4) พิมพ์เป็น PDF
+node mkpdf.mjs "../slides.html" "../UP-Drive-Slides.pdf"
 ```
 
 ## แก้ไขเนื้อหา
