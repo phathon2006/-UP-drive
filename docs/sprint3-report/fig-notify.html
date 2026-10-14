@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+.page { width:1120px; background:#f5f7fb; font-family:"Noto Sans Thai","Tahoma",sans-serif; color:#1f2937; padding-bottom:24px; }
+.bar { height:12px; background:#5b21b6; }
+.wrap { padding:24px 30px 0; }
+h2 { font-size:26px; color:#401681; }
+.sub { color:#6b7280; font-size:14px; margin-top:6px; margin-bottom:16px; }
+.row { display:flex; gap:20px; align-items:flex-start; }
+.card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 8px 22px rgba(0,0,0,.05); }
+.inapp { flex:1; padding:18px; }
+.inapp h3 { font-size:16px; color:#334155; margin-bottom:12px; }
+.n { display:flex; gap:12px; padding:12px; border:1px solid #eef2f7; border-left:4px solid #5b21b6; border-radius:12px; margin-bottom:10px; }
+.n.b { border-left-color:#0ea5e9; } .n.g { border-left-color:#16a34a; }
+.n .ic { width:38px; height:38px; border-radius:10px; background:#ede9fe; color:#5b21b6; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.n.b .ic { background:#e0f2fe; color:#0369a1; } .n.g .ic { background:#dcfce7; color:#166534; }
+.n .tt { font-weight:700; font-size:14px; }
+.n .mm { font-size:12.5px; color:#6b7280; margin-top:2px; }
+.n .tm { margin-left:auto; font-size:11px; color:#94a3b8; white-space:nowrap; }
+.phone { width:330px; background:#0f172a; border-radius:34px; padding:14px; }
+.screen { background:#f8fafc; border-radius:24px; padding:16px 14px; height:400px; }
+.screen .top { text-align:center; font-size:12px; color:#94a3b8; margin-bottom:14px; }
+.push { background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:0 4px 12px rgba(0,0,0,.06); }
+.push .app { font-size:11px; color:#94a3b8; display:flex; gap:6px; align-items:center; margin-bottom:5px; }
+.push .app b { color:#5b21b6; }
+.push .tt { font-weight:800; font-size:13.5px; }
+.push .mm { font-size:12.5px; color:#475569; margin-top:3px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bar"></div>
+  <div class="wrap">
+    <h2>ระบบแจ้งเตือน (In-app + Web Push)</h2>
+    <div class="sub">แจ้งเตือนเมื่อกลุ่มถูกจับคู่ คนขับรับงาน และคนขับใกล้ถึงจุดรับ — ทั้งในแอปและบนอุปกรณ์</div>
+    <div class="row">
+
+      <div class="card inapp">
+        <h3>การแจ้งเตือนในแอป (In-app)</h3>
+        <div class="n g">
+          <div class="ic">✓</div>
+          <div><div class="tt">คนขับรับงานของคุณแล้ว</div><div class="mm">คุณสมชาย รับงานกลุ่ม UP-2481 · รถ Toyota Yaris</div></div>
+          <div class="tm">เมื่อสักครู่</div>
+        </div>
+        <div class="n b">
+          <div class="ic">◉</div>
+          <div><div class="tt">คนขับใกล้ถึงจุดรับ (อีก 2 นาที)</div><div class="mm">กรุณาเตรียมตัวที่จุดรับ คณะเทคโนโลยีสารสนเทศ</div></div>
+          <div class="tm">1 นาที</div>
+        </div>
+        <div class="n">
+          <div class="ic">★</div>
+          <div><div class="tt">กลุ่มของคุณถูกจับคู่แล้ว</div><div class="mm">พบผู้ร่วมเดินทาง 2 คน ไปทางเดียวกัน</div></div>
+          <div class="tm">12 นาที</div>
+        </div>
+        <div class="n g">
+          <div class="ic">✓</div>
+          <div><div class="tt">การเดินทางเสร็จสิ้น</div><div class="mm">อย่าลืมให้คะแนนคนขับนะครับ</div></div>
+          <div class="tm">35 นาที</div>
+        </div>
+      </div>
+
+      <div class="phone">
+        <div class="screen">
+          <div class="top">ทะเบียนอุปกรณ์ — Web Push</div>
+          <div class="push">
+            <div class="app"><b>UP Drive</b> · ตอนนี้</div>
+            <div class="tt">คนขับกำลังมาถึง</div>
+            <div class="mm">คุณสมชาย อีก 2 นาทีถึงจุดรับ — แตะเพื่อดูแผนที่</div>
+          </div>
+          <div class="push">
+            <div class="app"><b>UP Drive</b> · 12 นาที</div>
+            <div class="tt">จับคู่กลุ่มสำเร็จ</div>
+            <div class="mm">มีผู้ร่วมเดินทาง 2 คนในเส้นทางของคุณ</div>
+          </div>
+          <div class="push">
+            <div class="app"><b>UP Drive</b> · 1 ชม.</div>
+            <div class="tt">มีคนขับรับงาน</div>
+            <div class="mm">กลุ่ม UP-2481 ได้คนขับแล้ว</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

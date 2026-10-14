@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+.page { width:1120px; background:#f5f7fb; font-family:"Noto Sans Thai","Tahoma",sans-serif; color:#1f2937; padding-bottom:24px; }
+.bar { height:12px; background:#5b21b6; }
+.wrap { padding:24px 30px 0; }
+h2 { font-size:26px; color:#401681; }
+.sub { color:#6b7280; font-size:14px; margin-top:6px; margin-bottom:16px; }
+.row { display:flex; gap:26px; justify-content:center; align-items:flex-start; }
+.phone { width:300px; background:#0f172a; border-radius:34px; padding:12px; }
+.screen { background:#f8fafc; border-radius:24px; overflow:hidden; }
+.hd { background:linear-gradient(120deg,#5b21b6,#7c3aed); color:#fff; padding:16px; }
+.hd .t { font-size:12px; opacity:.85; }
+.hd .n { font-size:16px; font-weight:800; margin-top:3px; }
+.bd { padding:14px; }
+.card { background:#fff; border:1px solid #eef2f7; border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:0 3px 10px rgba(0,0,0,.04); }
+.card .a { font-weight:800; font-size:13.5px; }
+.card .b { font-size:12px; color:#6b7280; margin-top:3px; }
+.pill { display:inline-block; font-size:11px; font-weight:800; color:#fff; background:#16a34a; border-radius:999px; padding:2px 9px; margin-top:6px; }
+.pill.v { background:#5b21b6; } .pill.o { background:#f59e0b; }
+.btn { background:#5b21b6; color:#fff; text-align:center; padding:12px; border-radius:12px; font-weight:800; font-size:14px; }
+.mapbox { height:150px; background:#e8f3ea; border-radius:14px; margin-bottom:10px; position:relative; overflow:hidden; }
+.mapbox .road { position:absolute; background:#d8e3d8; }
+.cap { text-align:center; font-size:13px; color:#475569; margin-top:10px; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bar"></div>
+  <div class="wrap">
+    <h2>การปรับปรุง UI/UX สำหรับมือถือ (Responsive)</h2>
+    <div class="sub">หน้าจอสำคัญถูกออกแบบให้ใช้งานบนมือถือได้สะดวก ปุ่มใหญ่ อ่านง่าย และกดใช้งานได้ด้วยมือเดียว</div>
+    <div class="row">
+
+      <div class="phone">
+        <div class="screen">
+          <div class="hd"><div class="t">สวัสดี</div><div class="n">ประกาศหารถ</div></div>
+          <div class="bd">
+            <div class="mapbox">
+              <div class="road" style="left:0; top:60px; width:100%; height:16px;"></div>
+              <div class="road" style="left:100px; top:0; width:14px; height:150px;"></div>
+              <div style="position:absolute; left:96px; top:56px; width:20px; height:20px; border-radius:50%; background:#ef4444;"></div>
+            </div>
+            <div class="card"><div class="a">ต้นทาง</div><div class="b">คณะเทคโนโลยีสารสนเทศ</div></div>
+            <div class="card"><div class="a">ปลายทาง</div><div class="b">หอพักในเมืองพะเยา</div></div>
+            <div class="btn">ค้นหากลุ่มเดินทาง</div>
+          </div>
+        </div>
+        <div class="cap">1. ประกาศเส้นทาง</div>
+      </div>
+
+      <div class="phone">
+        <div class="screen">
+          <div class="hd"><div class="t">กลุ่มของคุณ</div><div class="n">กำลังเดินทาง</div></div>
+          <div class="bd">
+            <div class="mapbox">
+              <div class="road" style="left:0; top:80px; width:100%; height:16px;"></div>
+              <div style="position:absolute; left:200px; top:60px; width:38px; height:26px; border-radius:8px; background:#5b21b6; color:#fff; text-align:center; font-size:13px; line-height:26px; font-weight:700;">A</div>
+              <div style="position:absolute; left:40px; top:120px; width:18px; height:18px; border-radius:50%; background:#ef4444;"></div>
+            </div>
+            <div class="card"><div class="a">คุณสมชาย · Toyota Yaris</div><div class="b">ถึงจุดรับอีก 2 นาที</div><span class="pill">LIVE</span></div>
+            <div class="card"><div class="a">ผู้ร่วมเดินทาง 3 คน</div><div class="b">ค่าใช้จ่ายประมาณ 25 บาท/คน</div><span class="pill v">จับคู่แล้ว</span></div>
+            <div class="btn">ยกเลิกกลุ่ม</div>
+          </div>
+        </div>
+        <div class="cap">2. ติดตามแบบ live</div>
+      </div>
+
+      <div class="phone">
+        <div class="screen">
+          <div class="hd"><div class="t">ย้อนหลัง</div><div class="n">ประวัติการเดินทาง</div></div>
+          <div class="bd">
+            <div class="card"><div class="a">ไปมหาวิทยาลัยพะเยา</div><div class="b">12 ต.ค. 2569 · 08:15</div><span class="pill">เสร็จแล้ว</span></div>
+            <div class="card"><div class="a">กลับหอพักในเมือง</div><div class="b">11 ต.ค. 2569 · 17:40</div><span class="pill">เสร็จแล้ว</span></div>
+            <div class="card"><div class="a">ไปตลาดพะเยา</div><div class="b">10 ต.ค. 2569 · 09:05</div><span class="pill o">ยกเลิก</span></div>
+            <div class="card"><div class="a">ให้คะแนนคนขับ</div><div class="b">แตะเพื่อประเมินทริปล่าสุด</div><span class="pill v">รอประเมิน</span></div>
+          </div>
+        </div>
+        <div class="cap">3. ประวัติและประเมิน</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

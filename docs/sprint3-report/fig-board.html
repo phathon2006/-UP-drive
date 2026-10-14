@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+.page { width:1150px; background:#f5f7fb; font-family:"Noto Sans Thai","Tahoma",sans-serif; color:#1f2937; padding-bottom:30px; }
+.bar { height:12px; background:#5b21b6; }
+.wrap { padding:26px 34px 0; }
+h2 { font-size:28px; color:#401681; }
+.sub { color:#6b7280; font-size:15px; margin-top:6px; margin-bottom:20px; }
+.cols { display:flex; gap:20px; }
+.col { flex:1; background:#eef2f7; border-radius:16px; padding:14px; }
+.col h3 { font-size:16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+.pill { font-size:12px; font-weight:800; color:#fff; background:#94a3b8; border-radius:999px; padding:3px 11px; }
+.done h3 { color:#166534; } .done .pill { background:#16a34a; }
+.doing h3 { color:#92400e; } .doing .pill { background:#f59e0b; }
+.todo h3 { color:#475569; } .todo .pill { background:#64748b; }
+.t { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:11px 12px; font-size:14px; line-height:1.35; margin-bottom:9px; box-shadow:0 3px 8px rgba(0,0,0,.04); }
+.done .t { border-left:4px solid #16a34a; }
+.doing .t { border-left:4px solid #f59e0b; }
+.todo .t { border-left:4px solid #94a3b8; }
+.mono { font-family:Consolas,monospace; font-size:12.5px; color:#5b21b6; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bar"></div>
+  <div class="wrap">
+    <h2>Sprint Board — Sprint 3 (สรุป)</h2>
+    <div class="sub">สถานะงาน ณ วันสิ้นสุด Sprint 3</div>
+    <div class="cols">
+
+      <div class="col done">
+        <h3>เสร็จแล้ว (Done) <span class="pill">9</span></h3>
+        <div class="t">แผนที่ติดตามตำแหน่งคนขับแบบ <b>live หลายคัน</b></div>
+        <div class="t">ระบบ <b>แจ้งเตือนในแอป</b> (in-app notification)</div>
+        <div class="t">ระบบ <b>Web Push Notification</b></div>
+        <div class="t">ระบบ <b>ประเมินคนขับ</b> (rating) หลังจบเที่ยว</div>
+        <div class="t">ปรับปรุง <b>UI/UX มือถือ</b> (responsive)</div>
+        <div class="t">เพิ่มชุดทดสอบ <b>E2E</b> (test coverage)</div>
+        <div class="t">ระบบ <b>monitoring</b> การ deploy</div>
+        <div class="t">ออกแบบ UX หน้าจอติดตาม/แจ้งเตือน</div>
+        <div class="t">เอกสาร Sprint 3 (ฉบับนี้)</div>
+      </div>
+
+      <div class="col doing">
+        <h3>กำลังทำ (In Progress) <span class="pill">1</span></h3>
+        <div class="t">เก็บรายละเอียดเอกสาร <b>Sprint 3</b> (ฉบับนี้)</div>
+        <div class="t" style="border-left-color:#e5e7eb; color:#94a3b8; background:transparent; border-style:dashed;">—</div>
+      </div>
+
+      <div class="col todo">
+        <h3>รอทำ (To Do) <span class="pill">0</span></h3>
+        <div class="t" style="border-left-color:#e5e7eb; color:#94a3b8; background:transparent; border-style:dashed;">ไม่มีงานค้าง — ส่งมอบครบตาม Sprint Goal</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

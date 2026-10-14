@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+.page { width:1120px; background:#f5f7fb; font-family:"Noto Sans Thai","Tahoma",sans-serif; color:#1f2937; padding-bottom:24px; }
+.bar { height:12px; background:#5b21b6; }
+.wrap { padding:24px 30px 0; }
+h2 { font-size:26px; color:#401681; }
+.sub { color:#6b7280; font-size:14px; margin-top:6px; margin-bottom:16px; }
+.row { display:flex; gap:18px; align-items:stretch; }
+.card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 8px 22px rgba(0,0,0,.05); overflow:hidden; }
+.map { flex:1; }
+.side { width:320px; padding:16px; }
+.side h3 { font-size:16px; color:#334155; margin-bottom:10px; }
+.car { display:flex; align-items:center; gap:10px; padding:10px; border:1px solid #eef2f7; border-radius:12px; margin-bottom:9px; }
+.av { width:34px; height:34px; border-radius:9px; background:#ede9fe; color:#5b21b6; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; }
+.car .n { font-weight:700; font-size:14px; }
+.car .m { font-size:12px; color:#6b7280; }
+.eta { margin-left:auto; font-weight:800; color:#166534; font-size:13px; }
+.tag { font-size:11px; font-weight:800; color:#fff; background:#5b21b6; border-radius:999px; padding:2px 9px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bar"></div>
+  <div class="wrap">
+    <h2>หน้าจอติดตามตำแหน่งคนขับแบบ Live (หลายคันพร้อมกัน)</h2>
+    <div class="sub">ผู้ใช้เห็นตำแหน่งคนขับทุกคันบนแผนที่เดียว อัปเดตแบบ Realtime ผ่าน Supabase Realtime</div>
+    <div class="row">
+      <div class="card map">
+        <svg width="742" height="440" viewBox="0 0 742 440">
+          <rect width="742" height="440" fill="#e8f3ea"/>
+          <rect x="0" y="0" width="742" height="440" fill="#ffffff" opacity="0.35"/>
+          <line x1="0" y1="120" x2="742" y2="120" stroke="#d8e3d8" stroke-width="26"/>
+          <line x1="120" y1="0" x2="120" y2="440" stroke="#d8e3d8" stroke-width="20"/>
+          <line x1="0" y1="320" x2="742" y2="320" stroke="#d8e3d8" stroke-width="22"/>
+          <line x1="520" y1="0" x2="520" y2="440" stroke="#d8e3d8" stroke-width="18"/>
+          <path d="M120,440 C180,300 300,260 380,200 C450,150 620,140 742,90" fill="none" stroke="#bfdbfe" stroke-width="9" stroke-dasharray="2 0" opacity="0.9"/>
+          <path d="M380,200 C460,220 560,260 700,300" fill="none" stroke="#a7f3d0" stroke-width="8" opacity="0.85"/>
+          <text x="40" y="35" font-size="15" fill="#94a3b8">มหาวิทยาลัยพะเยา</text>
+          <text x="600" y="410" font-size="15" fill="#94a3b8">ตัวเมืองพะเยา</text>
+
+          <!-- route -->
+          <polyline points="120,430 190,300 300,250 380,200 500,180 640,140" fill="none" stroke="#5b21b6" stroke-width="4" stroke-dasharray="10 7"/>
+          <!-- passenger pin -->
+          <circle cx="120" cy="430" r="10" fill="#ef4444"/>
+          <circle cx="120" cy="430" r="20" fill="#ef4444" opacity="0.2"/>
+
+          <!-- car A -->
+          <circle cx="380" cy="200" r="22" fill="#5b21b6" opacity="0.15"/>
+          <rect x="362" y="188" width="36" height="24" rx="7" fill="#5b21b6"/>
+          <text x="380" y="205" font-size="14" fill="#fff" text-anchor="middle" font-weight="700">A</text>
+          <!-- car B -->
+          <circle cx="560" cy="250" r="20" fill="#0ea5e9" opacity="0.15"/>
+          <rect x="543" y="239" width="34" height="22" rx="7" fill="#0ea5e9"/>
+          <text x="560" y="255" font-size="14" fill="#fff" text-anchor="middle" font-weight="700">B</text>
+          <!-- car C -->
+          <circle cx="250" cy="345" r="20" fill="#f59e0b" opacity="0.15"/>
+          <rect x="233" y="334" width="34" height="22" rx="7" fill="#f59e0b"/>
+          <text x="250" y="350" font-size="14" fill="#fff" text-anchor="middle" font-weight="700">C</text>
+        </svg>
+      </div>
+      <div class="card side">
+        <h3>คนขับใกล้คุณ (3 คัน)</h3>
+        <div class="car"><div class="av">A</div><div><div class="n">คุณสมชาย · 4 ที่นั่ง</div><div class="m">Toyota Yaris · ★ 4.9</div></div><div class="eta">2 นาที</div></div>
+        <div class="car"><div class="av">B</div><div><div class="n">คุณปิยะ · 3 ที่นั่ง</div><div class="m">Honda City · ★ 4.7</div></div><div class="eta">6 นาที</div></div>
+        <div class="car"><div class="av">C</div><div><div class="n">คุณนภา · 2 ที่นั่ง</div><div class="m">Isuzu D-Max · ★ 4.8</div></div><div class="eta">9 นาที</div></div>
+        <div style="margin-top:14px; display:flex; gap:8px; align-items:center;">
+          <span class="tag">LIVE</span>
+          <span style="font-size:12px; color:#6b7280;">อัปเดตล่าสุด: เมื่อสักครู่</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
